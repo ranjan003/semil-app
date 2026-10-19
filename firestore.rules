@@ -1,0 +1,158 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Helpers ──
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function role() {
+      return request.auth.token.role;
+    }
+    function isSuperAdmin() {
+      return isSignedIn() && role() == 'super_admin';
+    }
+    function isHrAdmin() {
+      return isSignedIn() && (role() == 'hr_admin' || role() == 'super_admin');
+    }
+    function isStaff() {
+      return isSignedIn() && role() in ['super_admin', 'hr_admin', 'technical_assessor', 'business_assessor'];
+    }
+
+    // ── Users ──
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isHrAdmin());
+      allow write: if isSuperAdmin();
+    }
+
+    // ── Candidates ──
+    match /candidates/{candidateId} {
+      allow read: if isStaff();
+      allow create, update: if isHrAdmin();
+      allow delete: if isSuperAdmin();
+
+      match /documents/{docId} {
+        allow read: if isStaff();
+        allow write: if isHrAdmin();
+      }
+      match /applications/{appId} {
+        allow read: if isStaff();
+        allow write: if isHrAdmin();
+
+        match /{subColl}/{subDoc} {
+          allow read: if isStaff();
+          allow write: if isHrAdmin();
+        }
+      }
+    }
+
+    // ── Vacancies ──
+    match /vacancies/{vacancyId} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Assessments ──
+    match /assessments/{assessmentId} {
+      allow read: if isStaff();
+      allow write: if isHrAdmin();
+
+      match /{subColl}/{subDoc} {
+        allow read: if isStaff();
+        allow write: if isHrAdmin();
+      }
+    }
+
+    // ── Question Bank ──
+    match /questionBank/{questionId} {
+      allow read: if isHrAdmin();
+      allow write: if isHrAdmin();
+
+      match /versions/{versionId} {
+        allow read: if isHrAdmin();
+        allow write: if isHrAdmin();
+      }
+    }
+
+    // ── Attempts (candidates can read their own) ──
+    match /attempts/{attemptId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+
+      match /{subColl}/{subDoc} {
+        allow read: if isSignedIn();
+        allow write: if isSignedIn();
+      }
+    }
+
+    // ── Assignments ──
+    match /assignments/{assignmentId} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Round Settings ──
+    match /roundSettings/{round} {
+      allow read: if isSignedIn();
+      allow write: if isSuperAdmin();
+    }
+
+    // ── Scoring Config ──
+    match /scoringConfig/{configId} {
+      allow read: if isStaff();
+      allow write: if isSuperAdmin();
+    }
+
+    // ── Audit Logs (append-only, read by admins) ──
+    match /auditLogs/{logId} {
+      allow read: if isHrAdmin();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    // ── Notifications ──
+    match /notifications/{notificationId} {
+      allow read: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isStaff();
+      allow delete: if false;
+    }
+
+    // ── Interviews ──
+    match /interviews/{interviewId} {
+      allow read: if isStaff();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Offers ──
+    match /offers/{offerId} {
+      allow read: if isStaff();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Colleges ──
+    match /colleges/{collegeId} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Campaigns ──
+    match /campaigns/{campaignId} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Import Batches ──
+    match /importBatches/{batchId} {
+      allow read: if isHrAdmin();
+      allow write: if isHrAdmin();
+    }
+
+    // ── Counters (for candidate codes, question codes) ──
+    match /counters/{counterId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn();
+    }
+  }
+}

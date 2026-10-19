@@ -1,0 +1,1038 @@
+<title>Semil Talent Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: fixed navy sidebar + sticky top bar + scrolling content; candidate portal swaps to a sidebar-less shell */
+:root{--bg:#F3F5F9;--surface:#FFFFFF;--surface2:#F7F9FC;--line:#E1E6EF;--fg:#0E1A33;--muted:#5A6A85;--side:#0B1B3A;--side-fg:#B9C6DE;--blue:#2457D6;--blue-soft:#E7EEFD;--teal:#0F8F84;--teal-soft:#DDF4F1;--ok:#17703A;--ok-bg:#E3F4E9;--warn:#A4580A;--warn-bg:#FCEFD2;--bad:#B3261E;--bad-bg:#FCE6E4;--gray:#4B5A74;--gray-bg:#E9EDF3;--shadow:0 1px 2px rgba(11,27,58,.06);--f:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0A101D;--surface:#111A2C;--surface2:#16213A;--line:#24324D;--fg:#E5ECF8;--muted:#92A3C0;--side:#070D19;--side-fg:#9FB0CE;--blue:#6B9BFF;--blue-soft:#172750;--teal:#3DD5C5;--teal-soft:#0F3A3A;--ok:#6EDC96;--ok-bg:#12351F;--warn:#F2B35E;--warn-bg:#3A2A0C;--bad:#FF8A80;--bad-bg:#3E1714;--gray:#A9B8D2;--gray-bg:#1D2A44;--shadow:none;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0A101D;--surface:#111A2C;--surface2:#16213A;--line:#24324D;--fg:#E5ECF8;--muted:#92A3C0;--side:#070D19;--side-fg:#9FB0CE;--blue:#6B9BFF;--blue-soft:#172750;--teal:#3DD5C5;--teal-soft:#0F3A3A;--ok:#6EDC96;--ok-bg:#12351F;--warn:#F2B35E;--warn-bg:#3A2A0C;--bad:#FF8A80;--bad-bg:#3E1714;--gray:#A9B8D2;--gray-bg:#1D2A44;--shadow:none;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f);font-size:14px;line-height:1.45;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;text-wrap:balance}
+h1{font-size:20px;font-weight:650}h2{font-size:15px;font-weight:650}h3{font-size:13px;font-weight:650}
+a{color:var(--blue)}
+.app{display:flex;height:100%}
+.side{width:236px;flex:none;background:var(--side);color:var(--side-fg);display:flex;flex-direction:column;overflow-y:auto;padding:14px 10px}
+.brand{display:flex;align-items:center;gap:10px;padding:4px 8px 16px;color:#fff}
+.logo{width:30px;height:30px;border-radius:8px;background:var(--blue);display:grid;place-items:center;font-weight:700;color:#fff}
+.brand b{display:block;font-size:14px;line-height:1.1}.brand small{color:var(--side-fg);font-size:11px}
+.nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;color:var(--side-fg);text-decoration:none;font-weight:500;cursor:pointer}
+.nav a:hover{background:rgba(255,255,255,.07);color:#fff}
+.nav a.on{background:var(--blue);color:#fff}
+.nav svg,.ic{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.main{flex:1;min-width:0;display:flex;flex-direction:column}
+.top{display:flex;align-items:center;gap:10px;padding:10px 20px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.top .grow{flex:1}
+.gsearch{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;min-width:0;width:320px;max-width:100%}
+.gsearch input{border:0;background:transparent;outline:0;width:100%;min-width:0}
+.content{padding:20px;overflow-y:auto;flex:1}
+.demo{background:var(--warn-bg);color:var(--warn);font-size:12px;padding:6px 20px;border-bottom:1px solid var(--line)}
+.crumbs{color:var(--muted);font-size:12px;margin-bottom:6px}
+.pghead{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:16px}
+.pghead p{margin:2px 0 0;color:var(--muted)}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 12px;cursor:pointer;font-weight:550;white-space:nowrap}
+.btn:hover{background:var(--surface2)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}.btn.pri:hover{filter:brightness(1.08)}
+.btn.dng{color:var(--bad);border-color:var(--bad)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn.ghost{border-color:transparent;background:transparent}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:16px;min-width:0}
+.card>h2{margin-bottom:12px}
+.grid{display:grid;gap:14px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,340px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.kpi small{color:var(--muted);display:block;font-size:12px}.kpi b{font-size:22px;font-variant-numeric:tabular-nums}
+.chip{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;white-space:nowrap}
+.c-gray{background:var(--gray-bg);color:var(--gray)}.c-blue{background:var(--blue-soft);color:var(--blue)}.c-green{background:var(--ok-bg);color:var(--ok)}.c-amber{background:var(--warn-bg);color:var(--warn)}.c-red{background:var(--bad-bg);color:var(--bad)}.c-teal{background:var(--teal-soft);color:var(--teal)}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{font-size:12px;color:var(--muted);font-weight:600;background:var(--surface2);white-space:nowrap}
+th[data-sort]{cursor:pointer}
+tr:last-child td{border-bottom:0}
+tbody tr.click{cursor:pointer}tbody tr.click:hover{background:var(--surface2)}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:550;min-width:0}
+input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:7px;padding:7px 9px;min-width:0;width:100%}
+textarea{min-height:70px;resize:vertical}
+.err{color:var(--bad);font-size:12px}.hint{font-size:12px;color:var(--muted)}
+input.bad,select.bad,textarea.bad{border-color:var(--bad)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}
+.form .full{grid-column:1/-1}
+.sec{margin:18px 0 8px;font-weight:650;font-size:13px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.bars{display:grid;gap:7px}
+.bar{display:grid;grid-template-columns:minmax(90px,150px) 1fr 56px;gap:8px;align-items:center;font-size:12px}
+.bar .t{height:14px;background:var(--surface2);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar .t i{display:block;height:100%;background:var(--blue)}
+.bar .t i.tl{background:var(--teal)}
+.bar span:last-child{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted)}
+.bar span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.empty{text-align:center;padding:26px 14px;color:var(--muted)}
+.empty b{display:block;color:var(--fg);margin-bottom:4px}
+.tabs{display:flex;gap:2px;overflow-x:auto;border-bottom:1px solid var(--line);margin:14px 0}
+.tabs button{border:0;background:transparent;padding:8px 12px;cursor:pointer;color:var(--muted);font-weight:550;white-space:nowrap;border-bottom:2px solid transparent}
+.tabs button.on{color:var(--blue);border-color:var(--blue)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.kv small{display:block;color:var(--muted);font-size:12px}
+.list{display:grid;gap:0}.list>div{padding:9px 0;border-bottom:1px solid var(--line);display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap}.list>div:last-child{border:0}
+.kan{display:flex;gap:10px;overflow-x:auto;padding-bottom:8px;align-items:flex-start}
+.col{flex:none;width:230px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px}
+.col h3{display:flex;justify-content:space-between;padding:2px 4px 8px}
+.kc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px;margin-bottom:8px;font-size:12px;display:grid;gap:4px}
+.kc b{font-size:13px;cursor:pointer}
+.modalbg{position:fixed;inset:0;background:rgba(7,13,25,.55);display:grid;place-items:center;z-index:30;padding:16px}
+.modal{background:var(--surface);border-radius:12px;width:min(640px,100%);max-height:92%;display:flex;flex-direction:column;border:1px solid var(--line)}
+.modal.wide{width:min(860px,100%)}
+.modal>header{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.modal>div{padding:16px 18px;overflow-y:auto}
+.modal>footer{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.toasts{position:fixed;right:16px;bottom:16px;display:grid;gap:8px;z-index:40}
+.toast{background:var(--side);color:#fff;padding:10px 14px;border-radius:8px;max-width:340px;border-left:4px solid var(--teal)}
+.toast.e{border-color:#ff8a80}
+.menu{position:absolute;right:20px;top:54px;background:var(--surface);border:1px solid var(--line);border-radius:10px;min-width:230px;padding:6px;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.menu button{display:block;width:100%;text-align:left;border:0;background:transparent;padding:7px 10px;border-radius:6px;cursor:pointer}
+.menu button:hover{background:var(--surface2)}.menu .lb{font-size:11px;color:var(--muted);padding:6px 10px 2px;text-transform:uppercase;letter-spacing:.06em}
+.menu button.cur{color:var(--blue);font-weight:650}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--blue-soft);color:var(--blue);display:grid;place-items:center;font-weight:650;font-size:12px}
+.cal{display:grid;grid-template-columns:repeat(7,minmax(130px,1fr));gap:6px;overflow-x:auto}
+.cal>div{background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:6px;min-height:110px}
+.cal h3{font-size:12px;color:var(--muted);margin-bottom:6px}
+.ev{background:var(--blue-soft);color:var(--blue);border-radius:6px;padding:4px 6px;font-size:12px;margin-bottom:4px}
+.ev.x{background:var(--gray-bg);color:var(--gray);text-decoration:line-through}
+.q{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--surface)}
+.opt{display:flex;gap:8px;align-items:center;margin:5px 0}.opt input[type=radio],.opt input[type=checkbox]{width:auto}
+.banner{padding:10px 12px;border-radius:8px;margin-bottom:12px;font-size:13px}
+.skel{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--line),var(--surface2),var(--line));background-size:200% 100%;animation:sk 1.2s infinite;margin:8px 0}
+@keyframes sk{to{background-position:-200% 0}}
+@media(prefers-reduced-motion:reduce){.skel{animation:none}}
+.burger{display:none}
+.timer{font-variant-numeric:tabular-nums;font-weight:700;font-size:18px}
+.pshell{max-width:980px;margin:0 auto}
+@media(max-width:900px){.side{position:fixed;left:-250px;top:0;bottom:0;z-index:25;transition:left .2s}.side.open{left:0}.burger{display:inline-flex}.gsearch{width:auto;flex:1}.content{padding:14px}.top{padding:8px 12px}.hide-s{display:none}}
+/* ---- journey, portal, secure test ---- */
+@keyframes draw{to{stroke-dashoffset:0}}
+@keyframes growx{from{transform:scaleX(0)}}
+@keyframes growy{from{transform:scaleY(0)}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes march{to{stroke-dashoffset:-18}}
+@keyframes beat{50%{transform:scale(1.2)}}
+@keyframes glow{50%{opacity:.55}}
+@keyframes ray{0%,100%{opacity:.15}50%{opacity:1}}
+@keyframes bob{50%{transform:translateY(-6px)}}
+@keyframes bub{0%,8%{opacity:0;transform:translateY(8px)}20%,70%{opacity:1;transform:none}90%,100%{opacity:0}}
+@keyframes letter{from{transform:translateY(10px)}to{transform:translateY(-12px)}}
+@keyframes fall{0%{transform:translate(0,0);opacity:1}100%{transform:translate(var(--x),96px);opacity:0}}
+@keyframes ringfill{to{stroke-dashoffset:var(--o)}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(36,87,214,.45)}100%{box-shadow:0 0 0 12px rgba(36,87,214,0)}}
+.dr{stroke-dasharray:60;stroke-dashoffset:60;animation:draw .7s var(--d,.2s) forwards}
+.jcard{padding:18px 8px 10px;overflow:hidden}
+.jr{position:relative}
+.jr ol{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(8,minmax(0,1fr));position:relative}
+.jr .trk{position:absolute;left:calc(100%/16);right:calc(100%/16);top:16px;height:4px;background:var(--line);border-radius:4px;overflow:hidden}
+.jr .trk i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--teal));transform-origin:left;transform:scaleX(var(--f));animation:growx 1.2s cubic-bezier(.2,.7,.2,1) both}
+.jr li button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;width:100%;padding:0 2px}
+.jr li button:focus-visible .nd{outline:2px solid var(--blue);outline-offset:3px}
+.jr .nd{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:var(--surface);border:2px solid var(--line);color:var(--muted);position:relative;z-index:1;animation:pop .5s calc(var(--i)*110ms) both}
+.jr .nd .ic{width:18px;height:18px;stroke-width:3}
+.jr li.done .nd{background:var(--blue);border-color:var(--blue);color:#fff}
+.jr li.cur .nd{border-color:var(--blue);color:var(--blue);animation:pop .5s calc(var(--i)*110ms) both,ping 1.8s 1s infinite}
+.jr li.stop .nd{border-color:var(--warn);color:var(--warn);background:var(--warn-bg)}
+.jr .nl b{display:block;font-size:12px;line-height:1.2;color:var(--fg)}
+.jr .nl small{display:block;color:var(--muted);font-size:11px}
+.jr li.up .nl b{color:var(--muted);font-weight:550}
+.jr li.sel .nl b{color:var(--blue);text-decoration:underline;text-underline-offset:3px}
+.jgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;margin:14px 0;align-items:start}
+.side2{display:grid;gap:14px}
+.sp{display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;animation:rise .5s both}
+.sp h2{font-size:18px}.sp h3{margin:14px 0 4px}
+.sp p{margin:6px 0;color:var(--muted)}
+.ill{background:var(--blue-soft);border-radius:14px;aspect-ratio:1;align-self:start;display:grid;place-items:center;overflow:hidden}
+.ill.is-done{background:var(--teal-soft)}
+.il{width:100%;height:100%;padding:12px;overflow:visible}
+.il .s{fill:none;stroke:var(--blue);stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.il .s2{fill:none;stroke:var(--teal);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+.il .f{fill:var(--surface);stroke:var(--blue);stroke-width:3;stroke-linejoin:round}
+.il .f2{fill:var(--teal-soft);stroke:var(--teal);stroke-width:3;stroke-linejoin:round}
+.il .ln{stroke-dasharray:40;stroke-dashoffset:40;animation:draw .5s var(--d,.2s) forwards}
+.il .bar{stroke-dasharray:var(--w);stroke-dashoffset:var(--w);animation:draw .8s var(--d,.1s) forwards}
+.il .hand{transform-box:view-box;transform-origin:90px 88px;animation:spin 6s linear infinite}
+.il .mv{stroke-dasharray:4 5;animation:march 1.2s linear infinite}
+.il .n1,.il .n2,.il .n3,.il .n4{transform-box:fill-box;transform-origin:center;animation:pop .5s both}
+.il .n2{animation-delay:.15s}.il .n3{animation-delay:.3s}.il .n4{animation-delay:.45s}
+.il .pulse{transform-box:fill-box;transform-origin:center;animation:beat 1.6s ease-in-out infinite}
+.il .glow{animation:glow 2s ease-in-out infinite}
+.il .ray{animation:ray 1.6s var(--d,0s) ease-in-out infinite}
+.il .up{animation:bob 1.4s ease-in-out infinite}
+.il .b1{animation:bub 4s ease-in-out infinite}
+.il .b2{animation:bub 4s 1.6s ease-in-out infinite}
+.il .letter{animation:letter 2.4s ease-in-out infinite alternate}
+.il .pop{transform-box:fill-box;transform-origin:center;animation:pop .6s both}
+.il .cf{animation:fall 2.4s var(--d,0s) ease-in infinite}
+.ck,.cl{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:7px}
+.ck li,.cl li{display:flex;gap:10px;align-items:flex-start;color:var(--fg)}
+.ck li span,.cl li span{width:20px;height:20px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;margin-top:1px}
+.ck li.on span,.cl li.on span{background:var(--teal);border-color:var(--teal);color:#fff;animation:pop .4s calc(var(--j,0)*120ms) both}
+.ck .ic,.cl .ic{width:12px;height:12px;stroke-width:3.5}
+.cl li:not(.on){color:var(--muted)}
+.tp{margin:6px 0 0;padding-left:18px;color:var(--muted);display:grid;gap:3px}
+.na{background:var(--blue-soft);border-radius:10px;padding:12px 14px;margin:12px 0;display:grid;gap:6px;animation:rise .5s .15s both}
+.na.ok{background:var(--ok-bg)}.na.bad{background:var(--bad-bg)}.na.quiet{background:var(--surface2);border:1px solid var(--line)}
+.na p{margin:0}
+.na .row{margin-top:2px}
+.ring{position:relative;width:84px;height:84px;margin:6px 0 10px}
+.ring svg{transform:rotate(-90deg);width:100%;height:100%}
+.rb{fill:none;stroke:var(--line);stroke-width:7}
+.rf{fill:none;stroke:var(--teal);stroke-width:7;stroke-linecap:round;stroke-dasharray:var(--L);stroke-dashoffset:var(--L);animation:ringfill 1.2s .2s forwards}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:16px}
+.tl{list-style:none;margin:8px 0 0;padding:0;display:grid}
+.tl li{display:flex;gap:12px;padding:8px 0;position:relative;animation:rise .4s calc(var(--i)*80ms) both}
+.tl li::before{content:"";position:absolute;left:5px;top:22px;bottom:-8px;width:2px;background:var(--line)}
+.tl li:last-child::before{display:none}
+.tl .dot{width:12px;height:12px;border-radius:50%;background:var(--teal);margin-top:4px;flex:none;position:relative;z-index:1}
+.hello{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.pct{font-weight:700;font-size:22px;color:var(--teal);font-variant-numeric:tabular-nums}
+.ptabs .badge{background:var(--bad);color:#fff;border-radius:99px;padding:0 6px;font-size:11px;margin-left:6px}
+.meter{height:8px;background:var(--line);border-radius:8px;overflow:hidden}
+.meter i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--blue),var(--teal));transition:width .5s}
+.drop{border:2px dashed var(--line);border-radius:10px;padding:12px;background:var(--surface2)}
+.drop:hover{border-color:var(--blue)}
+.uprog{margin-top:8px}
+.receipt{display:flex;gap:12px;align-items:center;background:var(--ok-bg);padding:10px 12px;border-radius:10px;margin-bottom:8px}
+.ic.big{width:34px;height:34px;stroke:var(--ok);stroke-width:3}
+.steps4{display:flex;gap:8px;margin-top:12px}
+.steps4 span{flex:1;text-align:center;padding:6px;border-radius:8px;background:var(--gray-bg);color:var(--gray);font-weight:600;font-size:12px}
+.steps4 .on{background:var(--ok-bg);color:var(--ok)}.steps4 .cur{background:var(--blue-soft);color:var(--blue)}
+.tc{margin-bottom:10px}
+.lockpill{display:inline-flex;gap:6px;align-items:center;background:var(--blue-soft);color:var(--blue);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:600;margin-top:4px}
+.lockpill .ic{width:14px;height:14px}
+.secure{min-height:100%}
+.tbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.tbar .tt{flex:1;min-width:140px}
+.timer.low{color:var(--bad);display:inline-block;animation:beat 1s infinite}
+.pager{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pg{width:36px;height:36px;border-radius:8px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600}
+.pg.on{background:var(--blue);color:#fff;border-color:var(--blue)}
+.pg.ans:not(.on){background:var(--teal-soft);border-color:var(--teal)}
+.qcard{animation:rise .35s both}
+.opt.big{padding:11px 12px;border:1px solid var(--line);border-radius:8px;cursor:pointer;margin:8px 0}
+.opt.big:has(input:checked){border-color:var(--blue);background:var(--blue-soft)}
+.pre,.blk{max-width:700px;margin:16px auto;display:grid;gap:12px}
+.lockico{width:76px;height:76px}
+.lockico svg{width:100%;height:100%}
+.lockico .f{fill:var(--blue-soft);stroke:var(--blue);stroke-width:2.5}
+.lockico .s{fill:none;stroke:var(--blue);stroke-width:2.5;stroke-linecap:round}
+.lockico .f2{fill:var(--teal-soft);stroke:var(--teal);stroke-width:2.5}
+.lockico .s2{fill:none;stroke:var(--teal);stroke-width:3.5;stroke-linecap:round;stroke-linejoin:round}
+.lockico .f.bad{fill:var(--bad-bg);stroke:var(--bad)}.lockico .s.bad{stroke:var(--bad)}
+.lockico .pop{transform-box:fill-box;transform-origin:center;animation:pop .6s both}
+.lockico.shake{animation:shake .6s .1s both}
+.rules{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rules ul{margin:6px 0 0;padding-left:18px;display:grid;gap:4px}
+.sc{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:6px}
+.sc li{display:flex;gap:8px;align-items:center;animation:rise .4s calc(var(--j)*200ms + .2s) both}
+.sc li span{width:20px;height:20px;border-radius:50%;background:var(--teal);color:#fff;display:grid;place-items:center;flex:none}
+.sc li.no span{background:var(--warn)}
+.sc .ic{width:12px;height:12px;stroke-width:3.5}
+.ack{margin:4px 0}
+@media(max-width:900px){.jgrid{grid-template-columns:1fr}}
+@media(max-width:700px){
+ .jr ol{grid-template-columns:1fr}
+ .jr li button{flex-direction:row;text-align:left;gap:12px;padding:7px 0}
+ .jr .trk{left:17px;right:auto;top:20px;bottom:20px;width:4px;height:auto}
+ .jr .trk i{transform-origin:top;transform:scaleY(var(--f));animation-name:growy}
+ .jr .nl small{display:block}
+ .sp{grid-template-columns:1fr}.ill{max-width:150px}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.001ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition:none!important}
+ .il .b1,.il .b2,.il .letter,.il .cf,.il .ray,.il .glow,.il .hand,.il .up,.il .pulse,.jr li.cur .nd{animation:none!important}
+}
+</style>
+<div id="app"></div><div id="modal"></div><div class="toasts" id="toasts"></div>
+<script>
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=(n,l)=>String(n).padStart(l,'0');
+const IC={dashboard:'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',candidates:'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8M22 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8',jobs:'M3 7h18v13H3zM8 7V4h8v3',campaigns:'M12 2 2 7l10 5 10-5zM6 10v6c0 1.5 3 3 6 3s6-1.5 6-3v-6',assessments:'M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9',groups:'M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6M3 20v-1a5 5 0 0 1 5-5h2a5 5 0 0 1 5 5v1M17 8a3 3 0 0 1 0 6M21 20v-1a4 4 0 0 0-3-3.8',pipeline:'M3 4h5v16H3zM10 4h5v10h-5zM17 4h4v6h-4z',interviews:'M3 5h18v16H3zM3 10h18M8 3v4M16 3v4',scorecards:'M12 2l3 7 7 .6-5.3 4.7 1.6 7.2L12 17.8l-6.3 3.7 1.6-7.2L2 9.6 9 9z',offers:'M4 4h16v16H4zM4 8l8 6 8-6',reports:'M4 20V10M10 20V4M16 20v-8M22 20H2',notifications:'M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9M10 21h4',users:'M5 11h14v10H5zM8 11V7a4 4 0 0 1 8 0v4',settings:'M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6M19 12l2 1-2 4-2-1-2 1v2h-4v-2l-2-1-2 1-2-4 2-1v-2l-2-1 2-4 2 1 2-1V4h4v2l2 1 2-1 2 4-2 1z',search:'M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16M21 21l-4.3-4.3',plus:'M12 5v14M5 12h14',menu:'M3 6h18M3 12h18M3 18h18'};
+const ic=n=>`<svg class="ic" viewBox="0 0 24 24"><path d="${IC[n]||''}"/></svg>`;
+
+/* ---------- reference data (configuration, not statistics) ---------- */
+const STAGES=['Applied','Round 1','Round 2','Round 3','Round 4','Round 5','Selected','Offer Sent','Offer Accepted','Joined','Rejected','On Hold'];
+const ROUNDS=['Skills','Group Project','Mindset & Reasoning','Individual Practical Creation','HR & Founder Interview'];
+const ROLES=[{id:'SDE',name:'Software Development Engineer (SDE I)',tech:1},{id:'DEVOPS',name:'Cloud & DevOps Engineer',tech:1},{id:'FE',name:'Frontend Engineer',tech:1},{id:'BDA',name:'Business Development Associate',tech:0},{id:'OPS',name:'Operations & Logistics Associate',tech:0}];
+const roleName=id=>(ROLES.find(r=>r.id===id)||{}).name||id;
+const SOURCES=['Campus drive','Referral','LinkedIn','Careers page','Job portal'];
+const COLLEGES=['RV College of Engineering','BMS College of Engineering','PES University','M S Ramaiah Institute of Technology','Dayananda Sagar College of Engineering','Christ University'];
+const SKILLS={SDE:['Java','Data structures','SQL','REST APIs'],DEVOPS:['Linux','Docker','CI/CD','AWS'],FE:['React','TypeScript','CSS','Accessibility'],BDA:['Sales','Negotiation','CRM','Communication'],OPS:['Excel','Logistics','Data analysis','Process design']};
+const BRANCH={SDE:'Computer Science',DEVOPS:'Information Science',FE:'Computer Science',BDA:'BBA / Management',OPS:'Industrial Engineering'};
+const PEOPLE={'Super Admin':'Rohan Mehta (Founder)','HR Admin':'Priya Raman','Technical Assessor':'Karthik Iyer','Business Assessor':'Sneha Kulkarni'};
+const CRIT=[['Core role knowledge','Problem solving','Accuracy','Practical screening task'],['Collaboration','Planning','Communication','Individual contribution'],['Reasoning with incomplete information','Adaptability to changed constraints','Creativity','Judgment','Ownership','Learning from feedback'],['Requirement coverage','Correctness and validation','Work quality','Error and edge-case handling','Explanation of decisions'],['Role alignment','Motivation','Accountability','Response to feedback','Career goals','Joining readiness']];
+const NAV=[['dashboard','Dashboard','SA HR TA BA'],['candidates','Candidates','SA HR TA BA'],['jobs','Jobs & Vacancies','SA HR'],['campaigns','Colleges & Campaigns','SA HR'],['assessments','Assessment Library','SA HR TA BA'],['groups','Group Projects','SA HR TA BA'],['pipeline','Hiring Pipeline','SA HR'],['interviews','Interviews & Schedule','SA HR TA BA'],['scorecards','Reviews & Scorecards','SA HR TA BA'],['offers','Offers & Joining','SA HR'],['reports','Reports & Analytics','SA HR'],['notifications','Notifications','SA HR TA BA'],['users','Users & Permissions','SA'],['settings','Settings','SA']];
+const RC={'Super Admin':'SA','HR Admin':'HR','Technical Assessor':'TA','Business Assessor':'BA'};
+
+/* ---------- sample dataset (clearly labelled mock data) ---------- */
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const SPEC=[['Aarav Nair',0,0,'Round 4',{sub:1,days:5}],['Diya Menon',1,2,'Round 3',{sub:1,days:1}],['Rahul Gowda',2,0,'Round 1',{}],['Ishita Rao',3,3,'Round 2',{}],['Vikram Shetty',4,1,'Round 5',{}],['Ananya Hegde',0,2,'Selected',{}],['Mohammed Faiz',1,4,'Round 3',{sub:1,days:4}],['Kavya Reddy',5,3,'Applied',{}],['Siddharth Jain',2,0,'Round 2',{}],['Neha Pillai',3,2,'Offer Sent',{}],['Arjun Kamath',4,1,'Rejected',{done:2}],['Meera Iyer',0,4,'Round 4',{}],['Rohit Bhat',5,3,'Round 1',{sub:1,days:2}],['Sahana Murthy',1,0,'Round 2',{sub:1,days:6}],['Tanvi Deshpande',2,2,'Applied',{}],['Yash Agarwal',3,0,'Offer Accepted',{}],['Pooja Krishnan',4,3,'Round 3',{}],['Harsh Vardhan',5,4,'On Hold',{done:3}],['Lakshmi Prasad',0,2,'Round 5',{}],['Nikhil Kulkarni',1,1,'Round 1',{}],['Aditi Sharma',2,3,'Round 2',{}],['Sanjay Naik',3,4,'Rejected',{done:1}],['Bhavana Rao',4,0,'Applied',{}],['Kiran Joshi',5,2,'Round 4',{sub:1,days:2}],['Rashmi Patil',0,3,'Joined',{}],['Varun Menon',1,0,'Round 3',{}]];
+function build(){
+ const r=rng(11),cands=[];
+ SPEC.forEach((s,i)=>{
+  const st=s[3],ex=s[4];let done=st==='Applied'?0:/^Round/.test(st)?+st[6]-1:(st==='Rejected'||st==='On Hold')?ex.done:5;
+  const base=56+r()*34,sc=[null,null,null,null,null];
+  for(let k=0;k<done;k++)sc[k]=Math.round(Math.max(32,Math.min(97,base+(r()-.5)*20)));
+  if(st==='Rejected')sc[done-1]=Math.round(30+r()*17);
+  const role=ROLES[s[2]],first=s[0].split(' ');
+  cands.push({id:'NT-2026-'+pad(i+1,4),name:s[0],email:(first[0]+'.'+first[1]).toLowerCase()+'@example.com',phone:'+91 98'+pad(Math.floor(r()*1e8),8),city:'Bengaluru',college:COLLEGES[s[1]],degree:'B.E. / '+BRANCH[role.id],year:2026,role:role.id,skills:SKILLS[role.id].slice(0,2+Math.floor(r()*3)),source:SOURCES[Math.floor(r()*5)],stage:st,scores:sc,submitted:!!ex.sub,subDays:ex.days||0,hr:PEOPLE['HR Admin'],interviewer:role.tech?PEOPLE['Technical Assessor']:PEOPLE['Business Assessor'],notes:'Restricted note: sample entry, visible to Super Admin and HR only.',repo:role.tech?'https://github.com/example-user/'+first[0].toLowerCase()+'-projects':'',avail:'Immediate',comp:'Per company band',campaign:'Bengaluru Campus Drive 2026'});
+ });
+ const mid=cands.filter(c=>['Round 3','Round 4','Round 5','Round 2'].includes(c.stage)).slice(0,6);
+ const dates=['2026-10-12','2026-10-12','2026-10-13','2026-10-14','2026-10-15','2026-10-16'],times=['10:00','11:30','14:00','10:00','15:30','12:00'];
+ const ivs=mid.map((c,i)=>({id:'IV-'+(i+1),cid:c.id,round:+(c.stage[6]||2),who:c.interviewer,date:dates[i],time:times[i],dur:45,mode:i%2?'Google Meet (link in invite)':'Office, Indiranagar',status:'Scheduled',reminder:i<3?'Sent':'Pending',instr:'Bring a laptop and a photo ID.'}));
+ const tg=cands.filter(c=>ROLES.find(x=>x.id===c.role).tech&&c.scores[0]!=null&&c.stage!=='Rejected').slice(0,4),bg=cands.filter(c=>!ROLES.find(x=>x.id===c.role).tech&&c.scores[0]!=null&&c.stage!=='Rejected').slice(0,3);
+ const resp=['Frontend and cart interaction','Product listing and data','Navigation and layout','Testing and README'],resp2=['Merchant list and outreach','Pilot metrics and budget','Operations plan'];
+ const groups=[{id:'G1',name:'Group A: Marketplace Prototype',kind:'Technical',project:'Build a marketplace website prototype with homepage, product listing, product details, navigation and a basic cart interaction.',deadline:'2026-10-18',team:72,pres:'Not uploaded',obs:'Team split work clearly on day one. Needs an integration pass before the deadline.',links:['https://github.com/example-team/marketplace-proto'],tasks:[{t:'Agree on page structure',d:1},{t:'Homepage and navigation',d:1},{t:'Product listing and details',d:0},{t:'Cart interaction',d:0},{t:'Record presentation',d:0}],members:tg.map((c,i)=>({cid:c.id,resp:resp[i]}))},{id:'G2',name:'Group B: Merchant Acquisition Pilot',kind:'Business',project:'Plan merchant acquisition, restaurant onboarding or delivery operations for a 30-day pilot.',deadline:'2026-10-19',team:null,pres:'Not uploaded',obs:'',links:[],tasks:[{t:'Define pilot goals and area',d:1},{t:'Outreach plan with weekly targets',d:0},{t:'Budget and risks',d:0},{t:'Present plan',d:0}],members:bg.map((c,i)=>({cid:c.id,resp:resp2[i]}))}];
+ const audit=[{t:'10 Oct 2026, 4:12 pm',who:PEOPLE['HR Admin'],text:'Moved Vikram Shetty to Round 5',cid:cands[4].id},{t:'10 Oct 2026, 2:40 pm',who:PEOPLE['Technical Assessor'],text:'Submitted Round 4 review for Aarav Nair',cid:cands[0].id},{t:'9 Oct 2026, 6:05 pm',who:PEOPLE['HR Admin'],text:'Created vacancy: Frontend Engineer',cid:null},{t:'9 Oct 2026, 11:20 am',who:PEOPLE['Super Admin'],text:'Rejected Sanjay Naik after Round 1 (below threshold)',cid:cands[21].id}];
+ const asm=[{id:'A1',title:'Engineering Skills Screening',type:'Technical questions',round:1,roles:['SDE','DEVOPS','FE'],diff:'Medium',time:45,pass:50,attempts:1,eval:'Auto + manual',status:'Active',ver:3,vh:['v3: added 2 SQL questions','v2: rebalanced marks','v1: first draft'],qs:[{t:'Which HTTP method is idempotent by definition?',k:'mc',o:['POST','PUT','PATCH','CONNECT'],a:[1],m:2},{t:'Select all valid ways to prevent duplicate order submission.',k:'ms',o:['Idempotency key','Disable button only on the client','Unique constraint on order reference','Retry until it works'],a:[0,2],m:3},{t:'What is the time complexity of binary search on a sorted array?',k:'mc',o:['O(n)','O(log n)','O(n log n)','O(1)'],a:[1],m:2},{t:'Explain in two sentences what a database index does.',k:'sa',o:[],a:[],m:3},{t:'Describe how you would validate input for an order form.',k:'la',o:[],a:[],m:5}],rubric:['Accuracy','Clarity','Depth']},{id:'A2',title:'Group Project: Marketplace Prototype',type:'Group project brief',round:2,roles:['SDE','FE','DEVOPS'],diff:'Medium',time:0,pass:50,attempts:1,eval:'Manual',status:'Active',ver:2,vh:['v2: added presentation step','v1: first draft'],qs:[],rubric:['Collaboration','Planning','Communication','Individual contribution']},{id:'A3',title:'Seller Activation Scenario',type:'Business role-play',round:3,roles:['SDE','DEVOPS','FE','BDA','OPS'],diff:'Hard',time:60,pass:50,attempts:1,eval:'Manual',status:'Active',ver:1,vh:['v1: first draft'],qs:[{t:'Semil has 100 registered sellers but customer orders are low. You have 30 days and a limited budget. What information do you need, how would you diagnose the issue and what would you do first?',k:'la',o:[],a:[],m:20}],rubric:['Reasoning','Adaptability','Creativity','Judgment','Ownership']},{id:'A4',title:'Frontend: Responsive Product Listing',type:'File-upload assignment',round:4,roles:['FE'],diff:'Medium',time:0,pass:60,attempts:2,eval:'Manual',status:'Draft',ver:1,vh:['v1: first draft'],qs:[],rubric:['Requirements','Responsiveness','States handled','Code quality']},{id:'A5',title:'Final HR and Founder Interview',type:'Interview scorecard',round:5,roles:['SDE','DEVOPS','FE','BDA','OPS'],diff:'n/a',time:45,pass:50,attempts:1,eval:'Manual',status:'Active',ver:2,vh:['v2: added joining readiness','v1: first draft'],qs:[],rubric:CRIT[4]},{id:'A6',title:'Business Skills Screening',type:'Technical questions',round:1,roles:['BDA','OPS'],diff:'Medium',time:30,pass:50,attempts:1,eval:'Auto + manual',status:'Active',ver:1,vh:['v1: first draft'],qs:[{t:'A merchant says your commission is too high. What is the best first response?',k:'mc',o:['Offer a discount at once','Ask what they compare it with, then explain the value','End the call','Send the price list again'],a:[1],m:2},{t:'Select all useful details to record after a discovery call.',k:'ms',o:['Merchant goals','Current delivery method','Gossip about competitor staff','Agreed next step and date'],a:[0,1,3],m:3},{t:'In three sentences, how would you decide which 20 of 100 merchant leads to call first?',k:'la',o:[],a:[],m:5}],rubric:['Accuracy','Clarity']}];
+ const vac=ROLES.map((x,i)=>({id:'V'+(i+1),title:x.name,dept:x.tech?'Engineering':'Business & Operations',open:[3,1,2,2,2][i],salary:['4.5-7 LPA','5-8 LPA','4-6.5 LPA','3.5-5 LPA','3.5-5 LPA'][i],loc:'Bengaluru, India',type:'Full-time',deadline:'2026-10-31',tpl:'Five-round standard',mgr:PEOPLE['Super Admin'],status:'Active',role:x.id}));
+ vac.push({id:'V6',title:'Customer Support Associate (future)',dept:'Operations',open:2,salary:'3-4 LPA',loc:'Bengaluru, India',type:'Full-time',deadline:'2026-12-15',tpl:'Five-round standard',mgr:PEOPLE['HR Admin'],status:'Draft',role:''});
+ const camps=[{id:'C1',name:'Bengaluru Campus Drive 2026',colleges:COLLEGES.slice(0,4),start:'2026-09-20',end:'2026-10-31',target:60,status:'Active'},{id:'C2',name:'Off-campus Fresher Hiring',colleges:COLLEGES.slice(4),start:'2026-10-01',end:'2026-11-15',target:30,status:'Active'}];
+ const notifs=[{t:'Round 4 submission from Aarav Nair is waiting for review',n:1},{t:'Interview with Diya Menon starts tomorrow at 10:00',n:1},{t:'Offer for Neha Pillai sent, awaiting response',n:0},{t:'Review for Sahana Murthy is overdue by 3 days',n:1}];
+ asm.forEach(a=>{a.lock=a.lock||(a.time>0?'strict':'off');a.files=a.files||[]});
+ const t0=Date.now();
+ cands[19].attempts={A1:{status:'blocked',warnings:1,events:[{t:t0-3600000,kind:'start',text:'Started the test'},{t:t0-3300000,kind:'violation',text:'Switched to another tab or minimised the window'}],answers:{0:[1],1:[0,2]},qi:2,remaining_ms:27*60000,blocked_at:t0-3300000,reinstated_count:0,auto:{got:5,tot:12}}};
+ cands[12].attempts={A6:{status:'submitted',warnings:0,events:[{t:t0-176400000,kind:'start',text:'Started the test'},{t:t0-174600000,kind:'note',text:'Submitted answers'}],answers:{0:[1],1:[0,1,3],2:'I would rank leads by order volume, category fit and distance, then call the top 20 first.'},qi:2,remaining_ms:0,submitted_at:t0-174600000,auto:{got:5,tot:5},ref:'SUB-20831'}};
+ return{candidates:cands,assessments:asm,vacancies:vac,interviews:ivs,groups,audit,campaigns:camps,notifs};
+}
+const EMPTYD=()=>({candidates:[],assessments:[],vacancies:[],interviews:[],groups:[],audit:[],campaigns:[],notifs:[]});
+
+/* ---------- scoring (pure) ---------- */
+function calc(c,cfg){
+ let sum=0,wt=0;const missing=[],fails=[];
+ for(let i=0;i<5;i++){const s=c.scores[i];if(s==null){missing.push(i+1);continue}sum+=s*cfg.w[i];wt+=cfg.w[i];if(s<cfg.t[i])fails.push(i+1)}
+ const overall=wt?sum/wt:null,complete=!missing.length;
+ let verdict;
+ if(!wt)verdict='Pending Review';else if(!complete)verdict='Incomplete';else verdict=(fails.length||overall<cfg.target)?'Below criteria':'Meets criteria';
+ if(c.override)verdict='Override: '+c.override.decision;
+ return{overall,complete,missing,fails,verdict,provisional:!complete&&wt>0};
+}
+
+/* ---------- state ---------- */
+const state={view:'dashboard',cid:null,tab:'overview',role:'Super Admin',mode:'sample',f:{},sort:{k:'id',d:1},pmode:'kanban',gid:'G1',draft:null,sc:{cid:null,round:1,r:{}},cfg:{w:[20,20,15,30,15],t:[50,50,50,60,50],target:65},sess:'ok',menu:false,nav:false,pt:'journey',ws:null,ans:{},rep:{role:''},loading:false,pstage:null,pcid:null,qbr:0,pendingTask:null};
+let D=build();
+const isCand=()=>state.role==='Candidate';
+const me=()=>isCand()?(portalCand()||{name:'Candidate'}).name:PEOPLE[state.role];
+const can=a=>({SA:1,HR:a!=='override'&&a!=='config'&&a!=='users'}[RC[state.role]]||0);
+const cand=id=>D.candidates.find(c=>c.id===id);
+function visible(){const rc=RC[state.role];if(rc==='TA')return D.candidates.filter(c=>ROLES.find(r=>r.id===c.role).tech);if(rc==='BA')return D.candidates.filter(c=>!ROLES.find(r=>r.id===c.role).tech);return D.candidates}
+function audit(text,cid){D.audit.unshift({t:new Date().toLocaleString('en-IN',{dateStyle:'medium',timeStyle:'short'}),who:me(),text,cid:cid||null})}
+function portalCand(){let c=cand(state.pcid);if(!c){c=D.candidates.find(x=>x.stage==='Round 1'&&!x.submitted&&x.role==='SDE')||D.candidates[0];state.pcid=c?c.id:null}return c}
+const stageIdx=c=>STAGES.indexOf(c.stage);
+const scoredRounds=c=>c.scores.filter(x=>x!=null).length;
+const reached=c=>c.stage==='Applied'?0:/^Round/.test(c.stage)?+c.stage[6]:(c.stage==='Rejected'||c.stage==='On Hold')?Math.max(1,scoredRounds(c)):5;
+const isSel=c=>['Selected','Offer Sent','Offer Accepted','Joined'].includes(c.stage);
+const decision=c=>c.stage==='Rejected'?'Rejected':c.stage==='On Hold'?'On Hold':isSel(c)?'Selected':(c.stage==='Applied'||c.stage==='Round 1')?'Pending':'Shortlisted';
+const astatus=c=>c.stage==='Applied'?'Not started':isSel(c)?'Completed':c.stage==='Rejected'||c.stage==='On Hold'?'Closed':c.submitted?'Under Review':'In Progress';
+const CHIP={Draft:'gray',Active:'teal','In Progress':'blue',Submitted:'blue','Under Review':'amber',Shortlisted:'green',Rejected:'red','On Hold':'amber',Selected:'green','Offer Accepted':'teal','Offer Sent':'blue',Joined:'green',Applied:'gray','Not started':'gray',Completed:'green',Closed:'gray',Pending:'gray',Scheduled:'blue',Cancelled:'gray',Done:'green',Incomplete:'amber','Pending Review':'amber','Meets criteria':'green','Below criteria':'red',Sent:'green',Archived:'gray'};
+const chip=s=>`<span class="chip c-${CHIP[s]||(/^Round/.test(s)?'blue':/^Override/.test(s)?'teal':'gray')}">${esc(s)}</span>`;
+const fmt=n=>n==null?'-':(Math.round(n*10)/10).toFixed(1);
+const avatar=n=>`<span class="avatar">${esc(n.split(' ').map(x=>x[0]).slice(0,2).join(''))}</span>`;
+const empty=(t,d,btn)=>`<div class="empty"><b>${esc(t)}</b>${esc(d)}${btn?`<div style="margin-top:12px">${btn}</div>`:''}</div>`;
+const bars=(items,max,cls)=>items.length?`<div class="bars">${items.map(i=>`<div class="bar"><span title="${esc(i[0])}">${esc(i[0])}</span><div class="t"><i class="${cls||''}" style="width:${max?Math.max(2,i[1]/max*100):0}%"></i></div><span>${i[2]!=null?i[2]:i[1]}</span></div>`).join('')}</div>`:empty('No data yet','Charts fill in as candidates are added.');
+function toast(m,e){const d=document.createElement('div');d.className='toast'+(e?' e':'');d.textContent=m;$('#toasts').appendChild(d);setTimeout(()=>d.remove(),3600)}
+function field(l,id,o){o=o||{};const v=o.v==null?'':o.v,r=o.req?' *':'';let inp;
+ if(o.opts)inp=`<select id="${id}">${o.opts.map(x=>{const a=Array.isArray(x)?x:[x,x];return`<option value="${esc(a[0])}"${String(a[0])===String(v)?' selected':''}>${esc(a[1])}</option>`}).join('')}</select>`;
+ else if(o.ta)inp=`<textarea id="${id}" placeholder="${esc(o.ph||'')}">${esc(v)}</textarea>`;
+ else if(o.file)inp=`<input id="${id}" type="file" ${o.acc?`accept="${o.acc}"`:''}>`;
+ else inp=`<input id="${id}" type="${o.type||'text'}" value="${esc(v)}" placeholder="${esc(o.ph||'')}" ${o.ro?'readonly':''}>`;
+ return`<label class="f ${o.full?'full':''}">${esc(l)}${r}${inp}<span class="err" id="${id}_e"></span>${o.hint?`<span class="hint">${esc(o.hint)}</span>`:''}</label>`}
+const val=id=>{const e=document.getElementById(id);return e?e.value.trim():''};
+function setErr(id,m){const e=document.getElementById(id+'_e'),i=document.getElementById(id);if(e)e.textContent=m||'';if(i)i.classList.toggle('bad',!!m);return!!m}
+function openModal(title,body,foot,wide){$('#modal').innerHTML=`<div class="modalbg" data-a="bg"><div class="modal ${wide?'wide':''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><header><h2>${esc(title)}</h2><button class="btn sm ghost" data-a="close" aria-label="Close">Close</button></header><div>${body}</div><footer>${foot||'<button class="btn" data-a="close">Close</button>'}</footer></div></div>`}
+const closeModal=()=>{$('#modal').innerHTML=''};
+function confirmReason(title,msg,actionAttrs,btnText){openModal(title,`<p>${msg}</p>${field('Reason (required, stored in the audit trail)','m_reason',{ta:1,full:1})}`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" ${actionAttrs}>${esc(btnText||'Confirm')}</button>`)}
+
+/* ---------- shell ---------- */
+function render(){
+ if(state.sess==='expired'){$('#app').innerHTML=`<div class="pshell" style="padding:60px 16px"><div class="card" style="max-width:420px;margin:auto;text-align:center"><h1>Session expired</h1><p class="hint">For your security you were signed out after a period of inactivity. Your saved answers are safe.</p><button class="btn pri" data-a="resume">Sign in again</button></div></div>`;return}
+ if(isCand()){renderPortal();return}
+ const rc=RC[state.role],label=(NAV.find(n=>n[0]===state.view)||['','Candidates'])[1];
+ const navs=NAV.filter(n=>n[2].includes(rc)).map(n=>`<a data-a="go" data-v="${n[0]}" class="${state.view===n[0]||(n[0]==='candidates'&&state.view==='candidate')||(n[0]==='assessments'&&state.view==='builder')?'on':''}">${ic(n[0])}<span>${n[1]}</span></a>`).join('');
+ const unread=D.notifs.filter(n=>n.n).length;
+ $('#app').innerHTML=`<div class="app"><aside class="side ${state.nav?'open':''}"><div class="brand"><span class="logo">N</span><span><b>Semil</b><small>Talent Discovery</small></span></div><nav class="nav">${navs}</nav></aside>
+ <div class="main"><header class="top"><button class="btn sm burger" data-a="nav" aria-label="Menu">${ic('menu')}</button>
+ <form class="gsearch" id="gs">${ic('search')}<input id="gq" placeholder="Search candidates by name or ID" aria-label="Global search"></form><span class="grow"></span>
+ <button class="btn pri sm" data-a="qc">${ic('plus')}<span class="hide-s">Create</span></button>
+ <button class="btn sm" data-a="go" data-v="notifications" aria-label="Notifications">${ic('notifications')}${unread?`<b>${unread}</b>`:''}</button>
+ <button class="btn sm ghost" data-a="umenu">${avatar(me())}<span class="hide-s">${esc(state.role)}</span></button></header>
+ ${state.menu?menuHtml():''}
+ <div class="demo">Prototype. ${state.mode==='sample'?'All people, scores and dates shown are mock sample data and are not real candidates.':'Empty workspace: no data yet.'} Permissions here are interface-only; the real system must enforce them on the server.</div>
+ <main class="content" id="content"><div class="crumbs">Home / ${esc(label)}${state.view==='candidate'?' / '+esc((cand(state.cid)||{}).name||''):''}${state.view==='builder'?' / Builder':''}</div>${view()}</main></div></div>`;
+ if(state.view==='candidates')renderCandTable();
+}
+function menuHtml(){return`<div class="menu"><div class="lb">View as role</div>${['Super Admin','HR Admin','Technical Assessor','Business Assessor','Candidate'].map(r=>`<button data-a="role" data-r="${r}" class="${state.role===r?'cur':''}">${r}</button>`).join('')}<div class="lb">Prototype data</div><button data-a="mode" data-m="sample" class="${state.mode==='sample'?'cur':''}">Sample data</button><button data-a="mode" data-m="empty" class="${state.mode==='empty'?'cur':''}">Empty workspace</button><div class="lb">Account</div><button data-a="expire">Simulate expired session</button><button data-a="theme">Toggle light / dark</button></div>`}
+function view(){
+ const vm={candidate:'candidates',candnew:'candidates',builder:'assessments'}[state.view]||state.view;if(!NAV.find(n=>n[0]===vm&&n[2].includes(RC[state.role])))return empty('Access denied','Your role does not include this module. The server returns 403 for the same request.');
+ const m={dashboard,candidates,candidate,candnew,jobs,campaigns,assessments,builder,groups,pipeline,interviews,scorecards,offers,reports,notifications,users,settings}[state.view];return m()}
+function head(t,sub,actions){return`<div class="pghead"><div><h1>${esc(t)}</h1>${sub?`<p>${esc(sub)}</p>`:''}</div><div class="row">${actions||''}</div></div>`}
+
+/* ---------- dashboard ---------- */
+function dashboard(){
+ const c=visible(),n=c.length;
+ if(!n)return head('Dashboard','Executive overview of the Bengaluru campaign')+`<div class="card">${empty('No candidates yet','Metrics, funnel and charts are calculated from the database and appear once you add the first candidate.',`<button class="btn pri" data-a="go" data-v="candnew">Add candidate</button> <button class="btn" data-a="go" data-v="jobs">Create vacancy</button>`)}</div>`;
+ const cnt=f=>c.filter(f).length,iv=D.interviews.filter(i=>i.status==='Scheduled');
+ const k=[['Total candidates',n],['New applications',cnt(x=>x.stage==='Applied')],['In assessment',cnt(x=>/^Round/.test(x.stage))],['Shortlisted',cnt(x=>decision(x)==='Shortlisted')],['Awaiting review',cnt(x=>x.submitted)],['Active vacancies',D.vacancies.filter(v=>v.status==='Active').length],['Interviews scheduled',iv.length],['Selected',cnt(isSel)],['Pending offers',cnt(x=>x.stage==='Selected'||x.stage==='Offer Sent')],['Joining confirmations',cnt(x=>x.stage==='Offer Accepted'||x.stage==='Joined')],['Blocked tests',blockedList().length]];
+ const fun=[['Applied',n]].concat([1,2,3,4,5].map(i=>['Round '+i,cnt(x=>reached(x)>=i)]),[['Selected',cnt(isSel)]]);
+ const byRole=ROLES.map(r=>[r.name.replace(/ \(.*\)/,''),cnt(x=>x.role===r.id)]),byCol=COLLEGES.map(x=>[x,cnt(y=>y.college===x)]).filter(x=>x[1]);
+ const pass=[0,1,2,3,4].map(i=>{const s=c.filter(x=>x.scores[i]!=null);const p=s.filter(x=>x.scores[i]>=state.cfg.t[i]).length;return['R'+(i+1)+' '+ROUNDS[i].split(' ')[0],s.length?Math.round(p/s.length*100):0,s.length?Math.round(p/s.length*100)+'%':'n/a']});
+ const comp=[1,2,3,4,5].map(i=>{const r=cnt(x=>reached(x)>=i),d=cnt(x=>x.scores[i-1]!=null);return['R'+i+' '+ROUNDS[i-1].split(' ')[0],r?Math.round(d/r*100):0,r?Math.round(d/r*100)+'%':'n/a']});
+ const over=c.filter(x=>x.submitted&&x.subDays>3);
+ return head('Dashboard','Executive overview of the Bengaluru campaign',`<button class="btn" data-a="go" data-v="candnew">Add candidate</button><button class="btn" data-a="newvac">Create vacancy</button><button class="btn" data-a="go" data-v="assessments">Create assessment</button><button class="btn" data-a="newcamp">Create campaign</button><button class="btn pri" data-a="newiv">Schedule interview</button>`)+
+ `<div class="kpis">${k.map(x=>`<div class="kpi"><small>${x[0]}</small><b>${x[1]}</b></div>`).join('')}</div><div class="grid g2">
+ <div class="card"><h2>Five-round hiring funnel</h2>${bars(fun,n)}</div>
+ <div class="card"><h2>Pass rate by round</h2>${bars(pass,100,'tl')}<p class="hint">Share of scored candidates at or above the round threshold.</p></div>
+ <div class="card"><h2>Candidates by role</h2>${bars(byRole,Math.max(...byRole.map(x=>x[1])))}</div>
+ <div class="card"><h2>Candidates by college</h2>${bars(byCol,Math.max(...byCol.map(x=>x[1])),'tl')}</div>
+ <div class="card"><h2>Assessment completion</h2>${bars(comp,100)}</div>
+ <div class="card"><h2>Upcoming interviews</h2>${iv.length?`<div class="list">${iv.slice().sort((a,b)=>(a.date+a.time).localeCompare(b.date+b.time)).slice(0,5).map(i=>`<div><span><b>${esc((cand(i.cid)||{}).name)}</b><br><small class="hint">Round ${i.round} with ${esc(i.who)}</small></span><span>${esc(i.date)} ${esc(i.time)}</span></div>`).join('')}</div>`:empty('Nothing scheduled','Scheduled interviews show here.')}</div>
+ <div class="card"><h2>Overdue reviews</h2>${over.length?`<div class="list">${over.map(x=>`<div><span><b>${esc(x.name)}</b><br><small class="hint">${esc(x.stage)} submitted ${x.subDays} days ago</small></span><button class="btn sm" data-a="opensc" data-id="${x.id}">Review</button></div>`).join('')}</div>`:empty('No overdue reviews','Reviews waiting more than 3 days appear here.')}</div>
+ ${blockedCard()}<div class="card"><h2>Recent activity</h2>${D.audit.length?`<div class="list">${D.audit.slice(0,6).map(a=>`<div><span>${esc(a.text)}<br><small class="hint">${esc(a.who)}</small></span><small class="hint">${esc(a.t)}</small></div>`).join('')}</div>`:empty('No activity yet','Changes are logged here.')}</div></div>`}
+
+/* ---------- candidates ---------- */
+function filtered(){const f=state.f,q=(f.q||'').toLowerCase();return visible().filter(c=>(!q||c.name.toLowerCase().includes(q)||c.id.toLowerCase().includes(q))&&(!f.college||c.college===f.college)&&(!f.year||String(c.year)===f.year)&&(!f.degree||c.degree.toLowerCase().includes(f.degree.toLowerCase()))&&(!f.role||c.role===f.role)&&(!f.skill||c.skills.join(' ').toLowerCase().includes(f.skill.toLowerCase()))&&(!f.source||c.source===f.source)&&(!f.stage||c.stage===f.stage)&&(!f.as||astatus(c)===f.as)&&(!f.min||(calc(c,state.cfg).overall||0)>=+f.min)&&(!f.dec||decision(c)===f.dec))}
+function candidates(){const f=state.f;const o=(a,k,l)=>`<label class="f">${l}<select data-f="${k}"><option value="">All</option>${a.map(x=>{const v=Array.isArray(x)?x[0]:x,t=Array.isArray(x)?x[1]:x;return`<option value="${esc(v)}"${f[k]===v?' selected':''}>${esc(t)}</option>`}).join('')}</select></label>`;
+ return head('Candidates','Search, filter and open any candidate record',can('create')?`<button class="btn pri" data-a="go" data-v="candnew">${ic('plus')}Add candidate</button>`:'')+
+ `<div class="filters"><label class="f">Name or candidate ID<input data-f="q" value="${esc(f.q||'')}" placeholder="e.g. Aarav or NT-2026-0001"></label>${o(COLLEGES,'college','College')}<label class="f">Degree<input data-f="degree" value="${esc(f.degree||'')}" placeholder="e.g. B.E."></label>${o(['2025','2026','2027'],'year','Graduation year')}${o(ROLES.map(r=>[r.id,r.name]),'role','Applied role')}<label class="f">Skill<input data-f="skill" value="${esc(f.skill||'')}" placeholder="e.g. React"></label>${o(SOURCES,'source','Source')}${o(STAGES,'stage','Current round')}${o(['Not started','In Progress','Under Review','Completed','Closed'],'as','Assessment status')}<label class="f">Min overall score<input data-f="min" type="number" min="0" max="100" value="${esc(f.min||'')}"></label>${o(['Pending','Shortlisted','Selected','On Hold','Rejected'],'dec','Hiring decision')}</div><div id="candTable"></div>`}
+function renderCandTable(){const el=$('#candTable');if(!el)return;const s=state.sort;let rows=filtered().map(c=>({c,ov:calc(c,state.cfg)}));
+ const key={id:r=>r.c.id,name:r=>r.c.name,college:r=>r.c.college,role:r=>r.c.role,stage:r=>stageIdx(r.c),ov:r=>r.ov.overall==null?-1:r.ov.overall}[s.k]||(r=>r.c.id);rows.sort((a,b)=>{const x=key(a),y=key(b);return(x>y?1:x<y?-1:0)*s.d});
+ if(!visible().length){el.innerHTML=`<div class="card">${empty('No candidates yet','Add your first candidate or import from a campaign.',`<button class="btn pri" data-a="go" data-v="candnew">Add candidate</button>`)}</div>`;return}
+ if(!rows.length){el.innerHTML=`<div class="card">${empty('No candidates match these filters','Clear a filter to see more.',`<button class="btn" data-a="clearf">Clear filters</button>`)}</div>`;return}
+ const th=(k,l)=>`<th data-sort="${k}">${l}${s.k===k?(s.d>0?' ▲':' ▼'):''}</th>`;
+ el.innerHTML=`<div class="tw"><table><thead><tr>${th('id','ID')}${th('name','Name')}${th('college','College')}${th('role','Role')}${th('stage','Round')}<th>Assessment</th>${th('ov','Overall')}<th>Decision</th></tr></thead><tbody>${rows.map(r=>`<tr class="click" data-a="open" data-id="${r.c.id}"><td>${r.c.id}</td><td><b>${esc(r.c.name)}</b></td><td>${esc(r.c.college)}</td><td>${r.c.role}</td><td>${chip(r.c.stage)}</td><td>${chip(astatus(r.c))}</td><td>${fmt(r.ov.overall)}${r.ov.provisional?' <small class="hint">prov.</small>':''}</td><td>${chip(decision(r.c))}</td></tr>`).join('')}</tbody></table></div><p class="hint">${rows.length} of ${visible().length} candidates</p>`}
+function nextId(){return'NT-2026-'+pad(D.candidates.length+1,4)}
+function candnew(){const E=state.edit,c=E||{};
+ return head(E?'Edit candidate':'Add candidate',E?E.id:'Candidate ID is generated automatically',`<button class="btn" data-a="go" data-v="candidates">Cancel</button><button class="btn pri" data-a="savecand">${E?'Save changes':'Create candidate'}</button>`)+
+ `<div class="card"><div class="sec" style="margin-top:0">Personal information</div><div class="form">${field('Candidate ID','f_id',{v:E?E.id:nextId(),ro:1})}${field('Full name','f_name',{req:1,v:c.name})}${field('Email','f_email',{req:1,type:'email',v:c.email})}${field('Phone','f_phone',{req:1,v:c.phone,ph:'+91 98XXXXXXXX'})}${field('City','f_city',{v:c.city||'Bengaluru'})}${field('Profile photo (optional)','f_photo',{file:1,acc:'image/png,image/jpeg'})}</div>
+ <div class="sec">Education</div><div class="form">${field('College','f_college',{req:1,opts:COLLEGES,v:c.college})}${field('Degree and branch','f_degree',{req:1,v:c.degree||'B.E. / Computer Science'})}${field('Graduation year','f_year',{req:1,type:'number',v:c.year||2026})}${field('Academic information (CGPA / %)','f_cgpa',{v:c.cgpa,ph:'Only where the role requires it'})}</div>
+ <div class="sec">Professional information</div><div class="form">${field('Applied position','f_role',{req:1,opts:ROLES.map(r=>[r.id,r.name]),v:c.role})}${field('Skills (comma separated)','f_skills',{v:(c.skills||[]).join(', ')})}${field('Internship or work experience','f_exp',{v:c.exp})}${field('Resume (PDF or DOCX, max 5 MB)','f_resume',{file:1,acc:'.pdf,.docx'})}${field('Portfolio or Git repository URL','f_repo',{type:'url',v:c.repo,ph:'https://'})}${field('Certifications and projects','f_cert',{v:c.cert})}${field('Joining availability','f_avail',{v:c.avail||'Immediate'})}${field('Expected compensation','f_comp',{v:c.comp,ph:'Where relevant'})}</div>
+ <div class="sec">Recruitment information</div><div class="form">${field('Campaign','f_camp',{opts:D.campaigns.map(x=>x.name).concat(['None']),v:c.campaign})}${field('Application source','f_source',{opts:SOURCES,v:c.source})}${field('Assigned HR representative','f_hr',{v:c.hr||PEOPLE['HR Admin']})}${field('Assigned interviewer','f_int',{opts:[PEOPLE['Technical Assessor'],PEOPLE['Business Assessor']],v:c.interviewer})}${field('Current round','f_stage',{opts:STAGES,v:c.stage||'Applied'})}${field('Internal notes (Super Admin and HR only)','f_notes',{ta:1,full:1,v:c.notes})}</div></div>`}
+function saveCand(){
+ const em=/^[^@\s]+@[^@\s]+\.[^@\s]+$/;let bad=0;
+ bad|=setErr('f_name',val('f_name').length<2?'Enter the full name.':'');
+ bad|=setErr('f_email',!em.test(val('f_email'))?'Enter a valid email address.':(D.candidates.some(c=>c.email===val('f_email').toLowerCase()&&(!state.edit||c.id!==state.edit.id))?'This email already has a candidate record.':''));
+ bad|=setErr('f_phone',!/^[6-9]\d{9}$/.test(val('f_phone').replace(/[\s-]/g,'').replace(/^\+91/,''))?'Enter a 10-digit Indian mobile number.':'');
+ const y=+val('f_year');bad|=setErr('f_year',!(y>=2020&&y<=2030)?'Enter a year between 2020 and 2030.':'');
+ const rp=val('f_repo');bad|=setErr('f_repo',rp&&!/^https?:\/\/\S+\.\S+/.test(rp)?'Enter a full URL starting with https://':'');
+ const rs=document.getElementById('f_resume').files[0];if(rs){bad|=setErr('f_resume',!/\.(pdf|docx)$/i.test(rs.name)?'Only PDF or DOCX files are accepted.':rs.size>5242880?'File is larger than 5 MB.':'')}
+ if(bad){toast('Fix the highlighted fields.',1);return}
+ const o={name:val('f_name'),email:val('f_email').toLowerCase(),phone:val('f_phone'),city:val('f_city'),college:val('f_college'),degree:val('f_degree'),year:y,cgpa:val('f_cgpa'),role:val('f_role'),skills:val('f_skills').split(',').map(x=>x.trim()).filter(Boolean),exp:val('f_exp'),repo:rp,cert:val('f_cert'),avail:val('f_avail'),comp:val('f_comp'),campaign:val('f_camp'),source:val('f_source'),hr:val('f_hr'),interviewer:val('f_int'),stage:val('f_stage'),notes:val('f_notes'),resume:rs?rs.name:undefined};
+ if(state.edit){const c=state.edit;Object.keys(o).forEach(k=>{if(o[k]!==undefined)c[k]=o[k]});audit('Edited candidate record',c.id);toast('Candidate updated.');state.cid=c.id;state.edit=null;go('candidate')}
+ else{const c=Object.assign({id:nextId(),scores:[null,null,null,null,null],submitted:false,subDays:0},o);D.candidates.push(c);audit('Created candidate '+c.name,c.id);toast('Candidate '+c.id+' created.');state.cid=c.id;go('candidate')}}
+
+/* ---------- candidate profile ---------- */
+const TABS=['Overview','Personal & Education','Resume & Portfolio','Assessments','Group Projects','Individual Assignments','Interview History','Reviews & Scorecards','Timeline & Audit History','Offers & Joining'];
+function roundStrip(c){const cfg=state.cfg;return`<div class="tw"><table><thead><tr><th>Round</th><th>Weight</th><th>Score</th><th>Minimum</th><th>Result</th></tr></thead><tbody>${ROUNDS.map((r,i)=>{const s=c.scores[i];return`<tr><td>R${i+1} ${r}</td><td>${cfg.w[i]}%</td><td>${s==null?'-':s}</td><td>${cfg.t[i]}</td><td>${s==null?chip('Pending Review'):chip(s>=cfg.t[i]?'Meets criteria':'Below criteria')}</td></tr>`}).join('')}</tbody></table></div>`}
+function candidate(){
+ const c=cand(state.cid);if(!c)return empty('Candidate not found','Return to the directory.',`<button class="btn" data-a="go" data-v="candidates">Back</button>`);
+ const k=calc(c,state.cfg),t=state.tab,priv=can('x')||RC[state.role]==='HR';let b='';
+ const kv=a=>`<div class="kv">${a.map(x=>`<div><small>${x[0]}</small>${esc(x[1]||'-')}</div>`).join('')}</div>`;
+ if(t==='Overview')b=`${kv([['Applied role',roleName(c.role)],['Current round',c.stage],['Overall score',fmt(k.overall)+(k.provisional?' (provisional, missing rounds not counted as zero)':'')],['Verdict',k.verdict],['Assigned interviewer',c.interviewer],['HR representative',c.hr]])}<div class="sec">Round scores</div>${roundStrip(c)}`;
+ if(t==='Personal & Education')b=`${kv([['Email',c.email],['Phone',c.phone],['City',c.city],['College',c.college],['Degree and branch',c.degree],['Graduation year',c.year],['Academic information',c.cgpa],['Joining availability',c.avail]])}<div class="sec">Internal notes</div>${priv?`<p>${esc(c.notes)}</p>`:'<p class="hint">Restricted. Your role cannot read internal notes.</p>'}`;
+ if(t==='Resume & Portfolio')b=`<div class="list"><div><span><b>${esc(c.resume||c.name.toLowerCase().replace(' ','_')+'_resume.pdf')}</b><br><small class="hint">Stored in private object storage. Never served from a public URL.</small></span><button class="btn sm" data-a="signed" data-id="${c.id}">Get expiring link</button></div><div><span><b>Portfolio / repository</b><br><small class="hint">${esc(c.repo||'Not provided')}</small></span>${c.repo?`<a class="btn sm" href="${esc(c.repo)}" target="_blank" rel="noopener">Open</a>`:''}</div><div><span><b>Skills</b><br><small class="hint">${esc(c.skills.join(', ')||'-')}</small></span></div></div>`;
+ if(t==='Assessments')b=assessTab(c);
+ if(t==='Group Projects'){const g=D.groups.find(g=>g.members.some(m=>m.cid===c.id));b=g?`<h3>${esc(g.name)}</h3><p>${esc(g.project)}</p>${kv([['Responsibility',g.members.find(m=>m.cid===c.id).resp],['Individual contribution score',c.scores[1]==null?'Not scored':c.scores[1]],['Team output score (separate)',g.team==null?'Not scored':g.team],['Deadline',g.deadline]])}<p><button class="btn sm" data-a="opengroup" data-id="${g.id}">Open workspace</button></p>`:empty('Not in a group','Group projects apply to Round 2.')}
+ if(t==='Individual Assignments'){const br={SDE:'Order-management feature with validation, status, error handling and a duplicate-submission explanation.',DEVOPS:'Deployment plan or sandbox deployment with health checks, logging, secrets handling and recovery steps.',FE:'Responsive product-listing page with search or filters, cart interaction and loading, empty and error states.',BDA:'Prioritise fictional merchant leads, prepare a discovery call, handle objections, write a follow-up plan.',OPS:'Analyse fictional order data, find delays and cancellations, prioritise incidents, propose corrective actions.'}[c.role];b=`<h3>Round 4 brief</h3><p>${esc(br)}</p>${kv([['Status',c.scores[3]!=null?'Scored':reached(c)>=4?(c.submitted?'Submitted, under review':'In progress'):'Not started'],['Score',c.scores[3]==null?'-':c.scores[3]],['Submission','File upload or repository link']])}`}
+ if(t==='Interview History'){const iv=D.interviews.filter(i=>i.cid===c.id);b=iv.length?`<div class="list">${iv.map(i=>`<div><span><b>Round ${i.round}</b> with ${esc(i.who)}<br><small class="hint">${i.date} ${i.time}, ${i.dur} min, ${esc(i.mode)}</small></span>${chip(i.status)}</div>`).join('')}</div>`:empty('No interviews','Schedule one from Interviews & Schedule.',`<button class="btn" data-a="newiv" data-id="${c.id}">Schedule interview</button>`)}
+ if(t==='Reviews & Scorecards')b=roundStrip(c)+`<p><button class="btn pri sm" data-a="opensc" data-id="${c.id}">Open scorecard</button></p>`;
+ if(t==='Timeline & Audit History'){const a=D.audit.filter(x=>x.cid===c.id);b=a.length?`<div class="list">${a.map(x=>`<div><span>${esc(x.text)}<br><small class="hint">${esc(x.who)}</small></span><small class="hint">${esc(x.t)}</small></div>`).join('')}</div>`:empty('No history yet','Stage changes, reviews and overrides are logged here.')}
+ if(t==='Offers & Joining')b=isSel(c)?kv([['Offer status',c.stage==='Selected'?'Not sent':c.stage==='Offer Sent'?'Sent, awaiting response':c.stage==='Offer Accepted'?'Accepted':'Joined'],['Role',roleName(c.role)],['Expected compensation',c.comp],['Joining availability',c.avail]]):empty('No offer yet','Offers are available once a candidate is Selected.');
+ return head(c.name,c.id+' · '+roleName(c.role),`<button class="btn" data-a="editcand" data-id="${c.id}">Edit</button><button class="btn" data-a="override" data-id="${c.id}">Change stage</button><button class="btn" data-a="go" data-v="candidates">Back</button>`)+`<div class="row" style="margin-bottom:6px">${chip(c.stage)}${chip(decision(c))}${chip(k.verdict)}</div><div class="tabs" role="tablist">${TABS.map(x=>`<button role="tab" data-a="tab" data-t="${esc(x)}" class="${t===x?'on':''}">${x}</button>`).join('')}</div><div class="card">${b}</div>`}
+
+/* ---------- vacancies and campaigns ---------- */
+function jobs(){return head('Jobs & Vacancies','Create roles without changing code',can('create')?`<button class="btn pri" data-a="newvac">${ic('plus')}Create vacancy</button>`:'')+(D.vacancies.length?`<div class="tw"><table><thead><tr><th>Role</th><th>Department</th><th>Openings</th><th>Salary (LPA)</th><th>Deadline</th><th>Candidates</th><th>Status</th><th></th></tr></thead><tbody>${D.vacancies.map(v=>`<tr><td><b>${esc(v.title)}</b></td><td>${esc(v.dept)}</td><td>${v.open}</td><td>${esc(v.salary)}</td><td>${esc(v.deadline)}</td><td>${D.candidates.filter(c=>c.role===v.role&&v.role).length}</td><td>${chip(v.status)}</td><td class="row"><button class="btn sm" data-a="editvac" data-id="${v.id}">Edit</button><button class="btn sm" data-a="dupvac" data-id="${v.id}">Duplicate</button>${v.status==='Active'?`<button class="btn sm" data-a="vstat" data-id="${v.id}" data-s="Closed">Close</button>`:`<button class="btn sm pri" data-a="vstat" data-id="${v.id}" data-s="Active">Publish</button>`}</td></tr>`).join('')}</tbody></table></div>`:`<div class="card">${empty('No vacancies','Create the first vacancy to start receiving applications.',`<button class="btn pri" data-a="newvac">Create vacancy</button>`)}</div>`)}
+function vacForm(v){v=v||{};openModal(v.id&&!v.dup?'Edit vacancy':'Create vacancy',`<div class="form">${field('Job title','v_title',{req:1,v:v.title,full:1})}${field('Department or project','v_dept',{v:v.dept,opts:['Engineering','Business & Operations','Operations','Semil marketplace','Food delivery','Logistics']})}${field('Linked role','v_role',{opts:[['','Custom role']].concat(ROLES.map(r=>[r.id,r.name])),v:v.role})}${field('Number of openings','v_open',{type:'number',req:1,v:v.open||1})}${field('Salary range (LPA)','v_sal',{v:v.salary,ph:'4-6'})}${field('Work location','v_loc',{v:v.loc||'Bengaluru, India'})}${field('Employment type','v_type',{opts:['Full-time','Internship','Contract'],v:v.type})}${field('Application deadline','v_dead',{type:'date',v:v.deadline})}${field('Assessment template','v_tpl',{opts:['Five-round standard','Three-round short','Custom'],v:v.tpl})}${field('Hiring manager','v_mgr',{opts:Object.values(PEOPLE),v:v.mgr})}${field('Required skills and minimum qualifications','v_req',{ta:1,full:1,v:v.req})}${field('Selection criteria','v_crit',{ta:1,full:1,v:v.crit})}</div>`,`<button class="btn" data-a="close">Cancel</button><button class="btn" data-a="savevac" data-id="${v.dup?'':v.id||''}" data-s="Draft">Save as draft</button><button class="btn pri" data-a="savevac" data-id="${v.dup?'':v.id||''}" data-s="Active">Publish</button>`,1)}
+function campaigns(){return head('Colleges & Campaigns','Track applications and selection by college',can('create')?`<button class="btn pri" data-a="newcamp">${ic('plus')}Create campaign</button>`:'')+`<div class="grid g2"><div class="card"><h2>Campaigns</h2>${D.campaigns.length?`<div class="list">${D.campaigns.map(c=>`<div><span><b>${esc(c.name)}</b><br><small class="hint">${esc(c.start)} to ${esc(c.end)} · target ${c.target} · ${c.colleges.length} colleges</small></span>${chip(c.status)}</div>`).join('')}</div>`:empty('No campaigns','Create a campaign to group colleges and dates.')}</div><div class="card"><h2>College-wise applications and selections</h2>${D.candidates.length?`<div class="tw"><table><thead><tr><th>College</th><th>Applied</th><th>Selected</th></tr></thead><tbody>${COLLEGES.map(x=>[x,D.candidates.filter(c=>c.college===x).length,D.candidates.filter(c=>c.college===x&&isSel(c)).length]).filter(r=>r[1]).map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td></tr>`).join('')}</tbody></table></div>`:empty('No applications','College data appears once candidates are added.')}</div></div>`}
+function campForm(){openModal('Create campaign',`<div class="form">${field('Campaign name','c_name',{req:1,full:1})}${field('Start date','c_s',{type:'date'})}${field('End date','c_e',{type:'date'})}${field('Hiring target','c_t',{type:'number',v:20})}${field('Colleges (comma separated)','c_c',{v:'',full:1})}</div>`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="savecamp">Create</button>`)}
+
+/* ---------- assessment library and builder ---------- */
+function assessmentsBase(){return head('Assessment Library','Build, version and reuse assessments',can('create')||RC[state.role]==='SA'?`<button class="btn" data-a="impopen">Import questions</button><button class="btn pri" data-a="newasm">${ic('plus')}Create assessment</button>`:'')+(D.assessments.length?`<div class="tw"><table><thead><tr><th>Title</th><th>Type</th><th>Round</th><th>Roles</th><th>Time</th><th>Pass</th><th>Version</th><th>Status</th><th></th></tr></thead><tbody>${D.assessments.map(a=>`<tr><td><b>${esc(a.title)}</b></td><td>${esc(a.type)}</td><td>R${a.round}</td><td>${esc(a.roles.join(', '))}</td><td>${a.time?a.time+' min':'-'}</td><td>${a.pass}%</td><td>v${a.ver}</td><td>${chip(a.status)}</td><td class="row"><button class="btn sm" data-a="editasm" data-id="${a.id}">Open</button><button class="btn sm" data-a="prevasm" data-id="${a.id}">Preview</button><button class="btn sm" data-a="dupasm" data-id="${a.id}">Duplicate</button><button class="btn sm" data-a="histasm" data-id="${a.id}">History</button></td></tr>`).join('')}</tbody></table></div><p class="hint">Answer keys are stored with the question on the server and are never sent to candidate screens.</p>`:`<div class="card">${empty('No assessments','Create a test, project brief or scorecard to assign to candidates.',`<button class="btn pri" data-a="newasm">Create assessment</button>`)}</div>`)}
+const ATYPES=['Multiple-choice questions','Multiple-select questions','Short written answers','Long written answers','Logical reasoning','Technical questions','Coding task brief','UI design brief','File-upload assignment','Group project brief','Business role-play','Spreadsheet and data analysis','Interview scorecard'];
+function newDraft(){return{id:null,title:'',type:ATYPES[5],round:1,roles:['SDE'],diff:'Medium',time:45,pass:50,attempts:1,eval:'Auto + manual',status:'Draft',ver:1,vh:[],qs:[],rubric:['Accuracy','Clarity'],instr:'',tools:'Browser, notes. No external help.',start:'',end:'',lock:'strict',files:[]}}
+function builder(){const d=state.draft;if(!d)return empty('Nothing open','Create or open an assessment from the library.',`<button class="btn" data-a="go" data-v="assessments">Back to library</button>`);
+ const bi=(k,l,o)=>`<label class="f ${o&&o.full?'full':''}">${l}${o&&o.sel?`<select data-b="${k}">${o.sel.map(x=>{const a=Array.isArray(x)?x:[x,x];return`<option value="${esc(a[0])}"${String(d[k])===String(a[0])?' selected':''}>${esc(a[1])}</option>`}).join('')}</select>`:o&&o.ta?`<textarea data-b="${k}">${esc(d[k])}</textarea>`:`<input data-b="${k}" type="${o&&o.type||'text'}" value="${esc(d[k])}">`}</label>`;
+ const total=d.qs.reduce((s,q)=>s+(+q.m||0),0);
+ return head(d.id?d.title||'Assessment':'New assessment','Version '+d.ver+' · '+d.status,`<button class="btn" data-a="go" data-v="assessments">Back</button><button class="btn" data-a="prevdraft">Preview as candidate</button><button class="btn" data-a="savedraft" data-s="Draft">Save draft</button><button class="btn pri" data-a="savedraft" data-s="Active">Publish</button>`)+
+ `<div class="card"><div class="form">${bi('title','Title *',{full:1})}${bi('type','Assessment type',{sel:ATYPES})}${bi('round','Hiring round',{sel:[[1,'Round 1 Skills'],[2,'Round 2 Group Project'],[3,'Round 3 Mindset & Reasoning'],[4,'Round 4 Individual Practical'],[5,'Round 5 HR & Founder']]})}${bi('diff','Difficulty',{sel:['Easy','Medium','Hard','n/a']})}${bi('time','Time limit (minutes, 0 for none)',{type:'number'})}${bi('pass','Minimum passing score (%)',{type:'number'})}${bi('attempts','Allowed attempts',{type:'number'})}${bi('lock','Test lock when a candidate leaves the window',{sel:[['strict','Block on first exit (recommended)'],['warn','Two warnings, then block'],['off','Off (log only)']]})}${bi('eval','Evaluation',{sel:['Automatic','Manual','Auto + manual']})}${bi('start','Start date',{type:'date'})}${bi('end','End date',{type:'date'})}<label class="f full">Applicable roles<span class="row">${ROLES.map(r=>`<label class="opt"><input type="checkbox" data-role="${r.id}" ${d.roles.includes(r.id)?'checked':''}>${r.id}</label>`).join('')}</span></label>${bi('instr','Description and instructions',{ta:1,full:1})}${bi('tools','Permitted resources and tools',{full:1})}<label class="f full">Evaluation rubric (comma separated criteria)<input data-b="rubric" value="${esc(d.rubric.join(', '))}"></label><label class="f full">File attachments (briefs and datasets: PDF, DOCX, XLSX, CSV, ZIP, PNG, up to 10 MB each)<input type="file" id="b_files" multiple accept=".pdf,.docx,.xlsx,.csv,.zip,.png,.jpg,.txt"><span class="err" id="b_files_e"></span>${(d.files||[]).length?`<span class="row">${d.files.map(f=>`<span class="chip c-blue">${esc(f)}</span>`).join('')}</span>`:''}</label></div></div>
+ <div class="sec">Questions (${d.qs.length}, ${total} marks)</div>${d.qs.map((q,i)=>`<div class="q"><div class="row" style="justify-content:space-between"><b>Question ${i+1}</b><span class="row"><select data-q="${i}" data-k="k" style="width:auto"><option value="mc"${q.k==='mc'?' selected':''}>Multiple choice</option><option value="ms"${q.k==='ms'?' selected':''}>Multiple select</option><option value="sa"${q.k==='sa'?' selected':''}>Short answer</option><option value="la"${q.k==='la'?' selected':''}>Long answer</option><option value="fu"${q.k==='fu'?' selected':''}>File upload</option></select><button class="btn sm dng" data-a="delq" data-i="${i}">Remove</button></span></div><label class="f">Question text<textarea data-q="${i}" data-k="t">${esc(q.t)}</textarea></label>${(q.k==='mc'||q.k==='ms')?`<p class="hint">Mark the correct answer(s). This key is hidden from candidates.</p>${q.o.map((o,j)=>`<div class="opt"><input type="${q.k==='mc'?'radio':'checkbox'}" name="k${i}" data-q="${i}" data-key="${j}" ${q.a.includes(j)?'checked':''}><input data-q="${i}" data-opt="${j}" value="${esc(o)}"></div>`).join('')}<button class="btn sm" data-a="addopt" data-i="${i}">Add option</button>`:'<p class="hint">Scored manually against the rubric.</p>'}<label class="f" style="max-width:120px;margin-top:8px">Marks<input type="number" data-q="${i}" data-k="m" value="${esc(q.m)}"></label></div>`).join('')||`<div class="card">${empty('No questions','Add the first question.')}</div>`}<button class="btn" data-a="addq">${ic('plus')}Add question</button>
+ ${d.vh.length?`<div class="sec">Version history</div><div class="list">${d.vh.map(x=>`<div>${esc(x)}</div>`).join('')}</div>`:''}`}
+function candPreview(a){return`<div class="banner c-blue">Candidate view. Answer keys and rubrics are not included.</div><h3>${esc(a.title)}</h3><p class="hint">${a.time?a.time+' minutes. ':''}${a.attempts} attempt(s).</p><p>${esc(a.instr||'')}</p>${a.qs.map((q,i)=>`<div class="q"><b>${i+1}. ${esc(q.t)}</b> <small class="hint">(${q.m} marks)</small>${q.o.map(o=>`<div class="opt"><input type="${q.k==='mc'?'radio':'checkbox'}" disabled>${esc(o)}</div>`).join('')}${q.k==='sa'||q.k==='la'?'<textarea disabled></textarea>':''}${q.k==='fu'?'<input type="file" disabled>':''}</div>`).join('')||'<p class="hint">This assessment has no questions.</p>'}`}
+
+/* ---------- group projects ---------- */
+function groups(){const g=D.groups.find(x=>x.id===state.gid)||D.groups[0];
+ if(!g)return head('Group Projects','Round 2 team workspaces')+`<div class="card">${empty('No groups yet','Create a group, assign candidates and publish the project brief.',`<button class="btn pri" data-a="newgroup">Create group</button>`)}</div>`;
+ return head('Group Projects','Round 2 team workspaces',`<button class="btn pri" data-a="newgroup">${ic('plus')}Create group</button>`)+`<div class="tabs">${D.groups.map(x=>`<button data-a="pickg" data-id="${x.id}" class="${x.id===g.id?'on':''}">${esc(x.name)}</button>`).join('')}</div>
+ <div class="grid g2"><div class="card"><h2>Shared project brief</h2><p>${esc(g.project)}</p><div class="kv"><div><small>Track</small>${g.kind}</div><div><small>Deadline</small>${esc(g.deadline)}</div><div><small>Presentation</small>${esc(g.pres)}</div></div></div>
+ <div class="card"><h2>Task checklist</h2><div class="list">${g.tasks.map((t,i)=>`<div><label class="opt"><input type="checkbox" data-a="gtask" data-i="${i}" ${t.d?'checked':''}>${esc(t.t)}</label></div>`).join('')}</div></div>
+ <div class="card" style="grid-column:1/-1"><h2>Team and individual contribution scores</h2><p class="hint">Each candidate is scored on their own contribution, teamwork and communication. The team output score is recorded separately and does not change anyone's individual score.</p>${g.members.length?`<div class="tw"><table><thead><tr><th>Candidate</th><th>Responsibility</th><th>Individual score (0-100)</th><th></th></tr></thead><tbody>${g.members.map((m,i)=>{const c=cand(m.cid)||{name:'?',scores:[]};return`<tr><td><b>${esc(c.name)}</b><br><small class="hint">${m.cid}</small></td><td><input data-gm="${i}" data-gk="resp" value="${esc(m.resp)}"></td><td><input type="number" min="0" max="100" id="gs_${i}" value="${c.scores[1]==null?'':c.scores[1]}" style="width:90px"></td><td><button class="btn sm" data-a="gscore" data-i="${i}">Save score</button></td></tr>`}).join('')}</tbody></table></div>`:empty('No members','Assign candidates to this group.')}</div>
+ <div class="card"><h2>Team output</h2>${field('Team output score (0-100)','g_team',{type:'number',v:g.team})}<p><button class="btn sm" data-a="gteam">Save team score</button></p><h3 style="margin-top:12px">Assessor observations</h3><textarea id="g_obs">${esc(g.obs)}</textarea><p><button class="btn sm" data-a="gobs">Save observations</button></p></div>
+ <div class="card"><h2>Files, links and presentation</h2>${g.links.length?`<div class="list">${g.links.map(l=>`<div><a href="${esc(l)}" target="_blank" rel="noopener">${esc(l)}</a></div>`).join('')}</div>`:'<p class="hint">No links yet.</p>'}<div class="row" style="margin-top:8px"><input id="g_link" placeholder="https://repository or prototype link" style="flex:1"><button class="btn sm" data-a="glink">Add link</button></div><label class="f" style="margin-top:10px">Presentation upload (PDF, PPTX, MP4)<input type="file" id="g_pres" accept=".pdf,.pptx,.mp4"></label><p><button class="btn sm" data-a="gpres">Attach presentation</button></p></div></div>`}
+
+/* ---------- pipeline ---------- */
+function pipeline(){const c=visible();if(!c.length)return head('Hiring Pipeline','Kanban and table views')+`<div class="card">${empty('Pipeline is empty','Candidates appear here once they apply.')}</div>`;
+ const nx=x=>{const iv=D.interviews.find(i=>i.cid===x.id&&i.status==='Scheduled');return iv?'Interview '+iv.date:x.submitted?'Review submission':reached(x)?'Complete Round '+reached(x):'Screen application'};
+ const card=x=>{const k=calc(x,state.cfg);return`<div class="kc"><b data-a="open" data-id="${x.id}">${esc(x.name)}</b><span>${esc(x.role)} · score ${fmt(k.overall)}</span><span class="hint">${x.submitted?'Pending evaluation':'No pending evaluation'}</span><span class="hint">${esc(x.interviewer)}</span><span class="hint">Next: ${esc(nx(x))}</span><button class="btn sm" data-a="override" data-id="${x.id}">Move stage</button></div>`};
+ return head('Hiring Pipeline','Manual stage changes need a reason and are audited',`<div class="row"><button class="btn ${state.pmode==='kanban'?'pri':''}" data-a="pmode" data-m="kanban">Kanban</button><button class="btn ${state.pmode==='table'?'pri':''}" data-a="pmode" data-m="table">Table</button></div>`)+
+ (state.pmode==='kanban'?`<div class="kan">${STAGES.map(s=>{const l=c.filter(x=>x.stage===s);return`<div class="col"><h3>${s}<span class="chip c-gray">${l.length}</span></h3>${l.map(card).join('')||'<p class="hint" style="padding:4px">Empty</p>'}</div>`}).join('')}</div>`:`<div class="tw"><table><thead><tr><th>Candidate</th><th>Role</th><th>Stage</th><th>Latest score</th><th>Pending evaluation</th><th>Interviewer</th><th>Next action</th><th>Deadline</th><th></th></tr></thead><tbody>${c.map(x=>{const last=x.scores.filter(s=>s!=null).slice(-1)[0];return`<tr><td><b>${esc(x.name)}</b></td><td>${x.role}</td><td>${chip(x.stage)}</td><td>${last==null?'-':last}</td><td>${x.submitted?'Yes':'No'}</td><td>${esc(x.interviewer)}</td><td>${esc(nx(x))}</td><td>${/^Round/.test(x.stage)?'2026-10-18':'-'}</td><td><button class="btn sm" data-a="override" data-id="${x.id}">Move</button></td></tr>`}).join('')}</tbody></table></div>`)}
+function overrideModal(id){const c=cand(id);openModal('Change stage: '+c.name,`<p>Current stage: ${chip(c.stage)}. Manual changes bypass the scoring rules, so a reason is required.</p>${field('New stage','m_stage',{opts:STAGES,v:c.stage})}${field('Reason (required, stored in the audit trail)','m_reason',{ta:1,full:1})}`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="doover" data-id="${id}">Confirm change</button>`)}
+
+/* ---------- interviews ---------- */
+function conflict(iv,ignore){const e=t=>{const[h,m]=t.split(':').map(Number);return h*60+m};return D.interviews.find(o=>o.id!==ignore&&o.status==='Scheduled'&&o.date===iv.date&&(o.who===iv.who||o.cid===iv.cid)&&e(o.time)<e(iv.time)+iv.dur&&e(iv.time)<e(o.time)+o.dur)}
+function interviews(){const days=['2026-10-12','2026-10-13','2026-10-14','2026-10-15','2026-10-16','2026-10-17','2026-10-18'],dn=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+ return head('Interviews & Schedule','Week of 12 October 2026',`<button class="btn pri" data-a="newiv">${ic('plus')}Create interview</button>`)+(D.interviews.length?`<div class="cal">${days.map((d,i)=>`<div><h3>${dn[i]} ${d.slice(8)}</h3>${D.interviews.filter(x=>x.date===d).sort((a,b)=>a.time.localeCompare(b.time)).map(x=>`<div class="ev ${x.status==='Cancelled'?'x':''}">${x.time} ${esc((cand(x.cid)||{}).name)}</div>`).join('')}</div>`).join('')}</div><div class="sec">List view</div><div class="tw"><table><thead><tr><th>Candidate</th><th>Round</th><th>Interviewer</th><th>When</th><th>Where</th><th>Reminder</th><th>Status</th><th></th></tr></thead><tbody>${D.interviews.map(i=>`<tr><td><b>${esc((cand(i.cid)||{}).name)}</b></td><td>R${i.round}</td><td>${esc(i.who)}</td><td>${i.date} ${i.time} (${i.dur} min)</td><td>${esc(i.mode)}</td><td>${chip(i.reminder)}</td><td>${chip(i.status)}</td><td class="row">${i.status==='Scheduled'?`<button class="btn sm" data-a="resched" data-id="${i.id}">Reschedule</button><button class="btn sm" data-a="cancel" data-id="${i.id}">Cancel</button><button class="btn sm" data-a="done" data-id="${i.id}">Mark done</button>`:''}${i.status==='Done'?`<button class="btn sm pri" data-a="opensc" data-id="${i.cid}">Evaluation</button>`:''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="card">${empty('No interviews scheduled','Create an interview to see the calendar and list.',`<button class="btn pri" data-a="newiv">Create interview</button>`)}</div>`)}
+function ivForm(iv,pre){const e=!!iv;iv=iv||{};openModal(e?'Reschedule interview':'Create interview',`<div class="form">${e?'':field('Candidate','i_c',{req:1,opts:D.candidates.map(c=>[c.id,c.name+' ('+c.id+')']),v:pre})}${e?'':field('Round','i_r',{opts:[1,2,3,4,5].map(n=>[n,'Round '+n+' '+ROUNDS[n-1]]),v:5})}${e?'':field('Interviewer','i_w',{opts:Object.values(PEOPLE).slice(0,4)})}${field('Date','i_d',{type:'date',v:iv.date||'2026-10-14'})}${field('Time','i_t',{type:'time',v:iv.time||'10:00'})}${field('Duration (minutes)','i_u',{type:'number',v:iv.dur||45})}${e?'':field('Location or meeting link','i_m',{v:'Google Meet (link sent in invite)'})}${e?'':field('Instructions','i_n',{ta:1,full:1})}</div><div id="i_conf"></div>`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="saveiv" data-id="${iv.id||''}">${e?'Save new time':'Schedule'}</button>`)}
+
+/* ---------- scorecards ---------- */
+function meets(){return D.candidates.filter(c=>{const k=calc(c,state.cfg);return k.complete&&!k.fails.length&&k.overall>=state.cfg.target})}
+function scorecards(){const list=visible();if(!list.length)return head('Reviews & Scorecards','Weighted evaluation across five rounds')+`<div class="card">${empty('No candidates to review','Scorecards appear once candidates reach a round.')}</div>`;
+ const c=cand(state.sc.cid)&&list.includes(cand(state.sc.cid))?cand(state.sc.cid):list[0],k=calc(c,state.cfg),r=state.sc.round,cr=CRIT[r-1],ratings=state.sc.r[c.id+r]||{};
+ const tot=cr.reduce((s,x)=>s+(+ratings[x]||0),0),done=cr.every(x=>ratings[x]);
+ return head('Reviews & Scorecards','Weighted score uses only rounds that have valid scores; missing rounds are never counted as zero')+
+ `<div class="grid g2"><div class="card"><h2>Candidate</h2><label class="f">Select candidate<select data-sc="cid">${list.map(x=>`<option value="${x.id}"${x.id===c.id?' selected':''}>${esc(x.name)} (${x.id})</option>`).join('')}</select></label><div class="row" style="margin:12px 0"><b style="font-size:24px">${fmt(k.overall)}</b>${chip(k.verdict)}${k.provisional?`<small class="hint">provisional, round(s) ${k.missing.join(', ')} missing</small>`:''}</div>${roundStrip(c)}<p class="hint">Target overall score ${state.cfg.target}. All mandatory round thresholds must also be met.</p>${k.fails.length?`<div class="banner c-red">Below threshold in round(s) ${k.fails.join(', ')}.</div>`:''}${c.override?`<div class="banner c-teal">Override by ${esc(c.override.by)}: ${esc(c.override.decision)}. Reason: ${esc(c.override.reason)}</div>`:''}<button class="btn" data-a="ovr" data-id="${c.id}" ${RC[state.role]==='SA'?'':'disabled title="Super Admin only"'}>Record override</button></div>
+ <div class="card"><h2>Round ${r} evaluation</h2><label class="f">Round<select data-sc="round">${[1,2,3,4,5].map(n=>`<option value="${n}"${n===r?' selected':''}>Round ${n} ${ROUNDS[n-1]}</option>`).join('')}</select></label>${r===3?'<div class="banner c-amber" style="margin-top:10px">Rate observable behaviour in the exercise only. Do not infer personality or mental health.</div>':''}${cr.map((x,i)=>`<div style="margin-top:10px"><label class="f">${esc(x)}<select data-rate="${esc(x)}"><option value="">Rate 1-5</option>${[1,2,3,4,5].map(n=>`<option${+ratings[x]===n?' selected':''}>${n}</option>`).join('')}</select></label></div>`).join('')}<label class="f" style="margin-top:10px">Written evidence<textarea id="sc_ev" placeholder="What did the candidate do or say that supports these ratings?"></textarea></label><label class="f" style="margin-top:10px">Recommendation<select id="sc_rec"><option>Advance</option><option>Hold</option><option>Reject</option></select></label><div class="row" style="margin-top:12px"><b>${done?Math.round(tot/(5*cr.length)*100):'-'}</b><span class="hint">/ 100 once all criteria are rated</span><span style="flex:1"></span><button class="btn pri" data-a="savesc" data-id="${c.id}">Save round score</button></div></div>
+ <div class="card" style="grid-column:1/-1"><h2>Meeting all criteria (${meets().length})</h2>${meets().length?`<div class="list">${meets().map(x=>`<div><span><b>${esc(x.name)}</b> <small class="hint">${x.id}</small></span><span>${fmt(calc(x,state.cfg).overall)}</span></div>`).join('')}</div>`:empty('None yet','Candidates appear here after all five rounds meet thresholds and the target score.')}</div></div>`}
+
+/* ---------- offers, reports, notifications, users, settings ---------- */
+function offers(){const l=D.candidates.filter(isSel);return head('Offers & Joining','From selection to joining')+(l.length?`<div class="tw"><table><thead><tr><th>Candidate</th><th>Role</th><th>Stage</th><th>Overall</th><th></th></tr></thead><tbody>${l.map(c=>`<tr><td><b>${esc(c.name)}</b></td><td>${c.role}</td><td>${chip(c.stage)}</td><td>${fmt(calc(c,state.cfg).overall)}</td><td>${{Selected:`<button class="btn sm pri" data-a="ostage" data-id="${c.id}" data-s="Offer Sent">Send offer</button>`,'Offer Sent':`<button class="btn sm" data-a="ostage" data-id="${c.id}" data-s="Offer Accepted">Mark accepted</button>`,'Offer Accepted':`<button class="btn sm" data-a="ostage" data-id="${c.id}" data-s="Joined">Confirm joined</button>`}[c.stage]||''}</td></tr>`).join('')}</tbody></table></div>`:`<div class="card">${empty('No selected candidates','Selected candidates and their offers appear here.')}</div>`)}
+function repData(){const c=D.candidates.filter(x=>!state.rep.role||x.role===state.rep.role);return c}
+function reports(){const c=repData(),n=c.length;const roleSel=`<label class="f" style="min-width:200px">Role<select data-rep="role"><option value="">All roles</option>${ROLES.map(r=>`<option value="${r.id}"${state.rep.role===r.id?' selected':''}>${r.name}</option>`).join('')}</select></label>`;
+ const ex=can('x')||RC[state.role]==='HR'?`<button class="btn" data-a="csv">Export CSV</button>`:'';
+ if(!n)return head('Reports & Analytics','Calculated from the database',ex)+`<div class="row" style="margin-bottom:12px">${roleSel}</div><div class="card">${empty('No data for this view','Reports fill in as candidates move through the rounds.')}</div>`;
+ const cnt=f=>c.filter(f).length,fun=[['Applied',n]].concat([1,2,3,4,5].map(i=>['Round '+i,cnt(x=>reached(x)>=i)]),[['Selected',cnt(isSel)]]);
+ const pass=[0,1,2,3,4].map(i=>{const s=c.filter(x=>x.scores[i]!=null),p=s.filter(x=>x.scores[i]>=state.cfg.t[i]).length;return['Round '+(i+1),s.length?Math.round(p/s.length*100):0,s.length?Math.round(p/s.length*100)+'%':'n/a']});
+ const src=SOURCES.map(s=>[s,cnt(x=>x.source===s)]),rl=ROLES.map(r=>[r.id,cnt(x=>x.role===r.id)]);
+ const offered=cnt(x=>['Offer Sent','Offer Accepted','Joined'].includes(x.stage)),acc=cnt(x=>['Offer Accepted','Joined'].includes(x.stage)),joined=cnt(x=>x.stage==='Joined');
+ const iv=D.interviews.filter(i=>!state.rep.role||(cand(i.cid)||{}).role===state.rep.role);
+ const over=c.filter(x=>x.submitted);
+ return head('Reports & Analytics','Calculated from the database',ex)+`<div class="row" style="margin-bottom:12px">${roleSel}<label class="f" style="min-width:200px">Date range<select><option>Campaign to date</option><option>Last 30 days</option><option>Last 7 days</option></select></label></div><div class="kpis"><div class="kpi"><small>Offer acceptance</small><b>${offered?Math.round(acc/offered*100)+'%':'n/a'}</b></div><div class="kpi"><small>Joining conversion</small><b>${acc?Math.round(joined/acc*100)+'%':'n/a'}</b></div><div class="kpi"><small>Interviews scheduled</small><b>${iv.filter(i=>i.status==='Scheduled').length}</b></div><div class="kpi"><small>Interviews completed</small><b>${iv.filter(i=>i.status==='Done').length}</b></div><div class="kpi"><small>Avg. review wait (days)</small><b>${over.length?(over.reduce((s,x)=>s+x.subDays,0)/over.length).toFixed(1):'n/a'}</b></div></div><div class="grid g2"><div class="card"><h2>Recruitment funnel</h2>${bars(fun,n)}</div><div class="card"><h2>Pass rate by round</h2>${bars(pass,100,'tl')}</div><div class="card"><h2>Distribution by role</h2>${bars(rl,Math.max(...rl.map(x=>x[1])))}</div><div class="card"><h2>Source of application</h2>${bars(src,Math.max(...src.map(x=>x[1])),'tl')}</div><div class="card" style="grid-column:1/-1"><h2>College-wise applications and selections</h2><div class="tw"><table><thead><tr><th>College</th><th>Applied</th><th>Selected</th><th>Selection rate</th></tr></thead><tbody>${COLLEGES.map(x=>[x,cnt(y=>y.college===x),cnt(y=>y.college===x&&isSel(y))]).filter(r=>r[1]).map(r=>`<tr><td>${esc(r[0])}</td><td>${r[1]}</td><td>${r[2]}</td><td>${Math.round(r[2]/r[1]*100)}%</td></tr>`).join('')}</tbody></table></div></div></div>`}
+function csvText(){const q=s=>'"'+String(s==null?'':s).replace(/"/g,'""')+'"';return['id,name,college,role,source,stage,r1,r2,r3,r4,r5,overall,verdict'].concat(repData().map(c=>{const k=calc(c,state.cfg);return[c.id,c.name,c.college,c.role,c.source,c.stage].concat(c.scores,[k.overall==null?'':fmt(k.overall),k.verdict]).map(q).join(',')})).join('\n')}
+function notifications(){return head('Notifications','',D.notifs.length?`<button class="btn" data-a="readall">Mark all read</button>`:'')+`<div class="card">${D.notifs.length?`<div class="list">${D.notifs.map(n=>`<div><span>${n.n?'<b>':''}${esc(n.t)}${n.n?'</b>':''}</span>${n.n?chip('Submitted').replace('Submitted','New'):''}</div>`).join('')}</div>`:empty('You are up to date','New submissions, interviews and offers show up here.')}</div>`}
+const USERS=[['Rohan Mehta','Super Admin','Active'],['Priya Raman','HR Admin','Active'],['Karthik Iyer','Technical Assessor','Active'],['Sneha Kulkarni','Business Assessor','Active']];
+const PERM=[['Candidate records','Full','Full','Assigned','Assigned','Own'],['Vacancies and campaigns','Full','Full','-','-','-'],['Assessment builder','Full','Create','Assigned','Assigned','-'],['Submissions and scoring','Full','View','Assigned','Assigned','Own'],['Interview notes (restricted)','Full','Full','Own','Own','-'],['Scheduling','Full','Full','Own','Own','Own'],['Offers','Approve','Send','-','-','Own'],['Reports and CSV export','Full','Full','-','-','-'],['Users, weights, retention','Full','-','-','-','-']];
+function users(){return head('Users & Permissions','Roles are enforced by the API, not by hidden buttons',`<button class="btn pri" data-a="invite">${ic('plus')}Invite user</button>`)+`<div class="grid g2"><div class="card"><h2>Team</h2><div class="list">${USERS.map(u=>`<div><span><b>${u[0]}</b><br><small class="hint">${u[1]}</small></span>${chip(u[2])}</div>`).join('')}</div></div><div class="card"><h2>Security controls</h2><div class="list"><div>Password reset by emailed link</div><div>Session expiry after 30 minutes idle</div><div>Resumes stored privately, opened by expiring signed URLs</div><div>Audit log on stage changes, scores, overrides</div></div></div></div><div class="sec">Permission matrix</div><div class="tw"><table><thead><tr><th>Capability</th><th>Super Admin</th><th>HR Admin</th><th>Technical</th><th>Business / Ops</th><th>Candidate</th></tr></thead><tbody>${PERM.map(r=>`<tr>${r.map((x,i)=>`<td>${i?esc(x):'<b>'+esc(x)+'</b>'}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function settings(){const c=state.cfg,sum=c.w.reduce((a,b)=>a+b,0);return head('Settings','Scoring rules are configuration, not code')+`<div class="grid g2"><div class="card"><h2>Round weights and thresholds</h2><div class="tw"><table><thead><tr><th>Round</th><th>Weight %</th><th>Minimum score</th></tr></thead><tbody>${ROUNDS.map((r,i)=>`<tr><td>R${i+1} ${r}</td><td><input type="number" min="0" max="100" data-w="${i}" value="${c.w[i]}" style="width:80px"></td><td><input type="number" min="0" max="100" data-t="${i}" value="${c.t[i]}" style="width:80px"></td></tr>`).join('')}</tbody></table></div><div class="row" style="margin-top:10px"><label class="f" style="width:160px">Overall target<input type="number" data-target value="${c.target}"></label><span id="wsum" class="chip c-${sum===100?'green':'red'}">Total ${sum}%</span></div><p class="hint">Weights must total 100%. Changes apply to scoring immediately.</p><button class="btn pri" data-a="savecfg">Save scoring rules</button></div>
+ <div class="card"><h2>Data and privacy</h2><div class="form">${field('Candidate data retention','s_ret',{opts:['6 months after campaign','12 months after campaign','24 months after campaign']})}${field('Session timeout','s_ses',{opts:['15 minutes','30 minutes','60 minutes'],v:'30 minutes'})}</div><p class="hint">Rejected candidates can be deleted on request. Database backups run daily with point-in-time recovery.</p></div></div>`}
+
+/*SYNC:src/proctoring.js*/
+// Test-lock rules. Pure functions, so the browser prototype, the API and the tests share one definition.
+// A web page cannot stop a person opening another tab or app. It can detect that the test window lost
+// focus and refuse to continue. The server holds the deadline and the status, so refreshing the page,
+// editing client code or going offline does not bring a blocked attempt back.
+//
+// Attempt statuses: in_progress -> blocked -> ready (HR reinstated) -> in_progress -> submitted
+// Lock modes: strict = block on first exit, warn = two warnings then block, off = log only.
+
+const MODES = ['strict', 'warn', 'off'];
+const MAX_WARNINGS = 2;
+
+function pxTime(x) { return x instanceof Date ? x.getTime() : new Date(x).getTime(); }
+
+function pxViolation(attempt, mode) {
+  const warnings = (attempt && attempt.warnings) || 0;
+  if (!attempt || attempt.status !== 'in_progress') return { action: 'ignore', warnings };
+  if (!MODES.includes(mode) || mode === 'off') return { action: 'log', warnings };
+  if (mode === 'strict') return { action: 'block', warnings: warnings + 1 };
+  const w = warnings + 1;
+  return w > MAX_WARNINGS ? { action: 'block', warnings: w } : { action: 'warn', warnings: w };
+}
+
+function pxRemaining(attempt, now) {
+  if (attempt.status === 'in_progress') return Math.max(0, pxTime(attempt.deadline_at) - now);
+  return Math.max(0, Number(attempt.remaining_ms) || 0);
+}
+
+// Freeze the clock while blocked, so HR can give the candidate back exactly the time they had left.
+function pxBlock(attempt, now) {
+  return { status: 'blocked', remaining_ms: pxRemaining(attempt, now), blocked_at: now };
+}
+
+function pxReinstate(attempt, now, reason) {
+  if (attempt.status !== 'blocked') throw new Error('Only a blocked attempt can be reinstated');
+  if (!reason || String(reason).trim().length < 5) throw new Error('A reason is required to reinstate an attempt');
+  return { status: 'ready', warnings: 0, reinstated_count: (attempt.reinstated_count || 0) + 1, reinstated_at: now };
+}
+
+function pxResume(attempt, now) {
+  if (!['idle', 'ready'].includes(attempt.status)) throw new Error('This attempt cannot be started');
+  return { status: 'in_progress', deadline_at: now + Math.max(0, Number(attempt.remaining_ms) || 0) };
+}
+
+// May answers be saved or submitted right now? 5 seconds of grace covers network delay.
+function pxCanWrite(attempt, now, graceMs = 5000) {
+  if (!attempt) return { ok: false, reason: 'no_attempt' };
+  if (attempt.status === 'blocked') return { ok: false, reason: 'blocked' };
+  if (attempt.status === 'submitted') return { ok: false, reason: 'already_submitted' };
+  if (attempt.status !== 'in_progress') return { ok: false, reason: 'not_started' };
+  if (pxTime(attempt.deadline_at) + graceMs < now) return { ok: false, reason: 'time_expired' };
+  return { ok: true };
+}
+
+
+/*SYNC:src/importer.js*/
+// Question import for all five rounds. Accepts CSV or JSON, checks every row, and reports problems by
+// row number so an admin can fix the file and retry. Nothing is saved until the admin confirms.
+// Excel files: save as CSV first.
+
+const KIND = { mcq: 'mc', multi: 'ms', short: 'sa', long: 'la', scenario: 'la', upload: 'fu' };
+const MAX_ROWS = 500;
+const MAX_CHARS = 1048576;
+const LETTERS = ['A', 'B', 'C', 'D'];
+
+function impParseCsv(text) {
+  const rows = []; let row = [], cur = '', quoted = false;
+  const s = String(text).replace(/^﻿/, '');
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (quoted) {
+      if (ch === '"') { if (s[i + 1] === '"') { cur += '"'; i++; } else quoted = false; }
+      else cur += ch;
+    } else if (ch === '"' && cur === '') quoted = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && s[i + 1] === '\n') i++; row.push(cur); cur = ''; rows.push(row); row = []; }
+    else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return { rows: rows.filter(r => r.some(c => String(c).trim() !== '')), unclosed: quoted };
+}
+
+function impNormalizeJson(v) {
+  if (!v || typeof v !== 'object') return {};
+  const o = {};
+  for (const k of Object.keys(v)) o[String(k).toLowerCase()] = Array.isArray(v[k]) ? v[k].join(';') : (v[k] == null ? '' : String(v[k]).trim());
+  if (Array.isArray(v.options)) v.options.slice(0, 4).forEach((x, i) => { o['option_' + 'abcd'[i]] = String(x == null ? '' : x).trim(); });
+  return o;
+}
+
+function impCheckRow(v) {
+  const errors = [];
+  const round = Number(v.round);
+  if (!Number.isInteger(round) || round < 1 || round > 5) errors.push('Round must be 1 to 5');
+  const type = String(v.type || '').toLowerCase();
+  const k = KIND[type];
+  if (!k) errors.push('Type must be one of: ' + Object.keys(KIND).join(', '));
+  const t = String(v.question || '').trim();
+  if (t.length < 5) errors.push('Question text is missing or too short');
+  if (t.length > 2000) errors.push('Question text is longer than 2000 characters');
+  const marks = v.marks === '' || v.marks == null ? 1 : Number(v.marks);
+  if (!Number.isFinite(marks) || marks <= 0 || marks > 100) errors.push('Marks must be a number from 1 to 100');
+  const diff = String(v.difficulty || '').toLowerCase();
+  if (diff && !['easy', 'medium', 'hard'].includes(diff)) errors.push('Difficulty must be easy, medium or hard');
+  let o = [], a = [];
+  if (k === 'mc' || k === 'ms') {
+    const opts = [v.option_a, v.option_b, v.option_c, v.option_d].map(x => String(x || '').trim());
+    let n = opts.length; while (n > 0 && !opts[n - 1]) n--;
+    o = opts.slice(0, n);
+    if (o.length < 2) errors.push('Give at least two options (option_a, option_b ...)');
+    else if (o.some(x => !x)) errors.push('Fill the options in order without gaps');
+    const letters = [...new Set(String(v.correct || '').toUpperCase().match(/[A-D]/g) || [])];
+    if (!letters.length) errors.push('Mark the correct answer (A to D)');
+    else {
+      a = letters.map(l => LETTERS.indexOf(l)).sort();
+      if (a.some(i => i >= o.length)) errors.push('The correct answer points to an empty option');
+      if (k === 'mc' && a.length !== 1) errors.push('Single-choice questions need exactly one correct answer');
+      if (k === 'ms' && a.length < 2) errors.push('Multi-select questions need two or more correct answers');
+    }
+  }
+  return { errors, q: { round, k, t, o, a, m: marks, diff } };
+}
+
+function impParse(text, filename) {
+  const res = { rows: [], fatal: null, summary: null };
+  const s = String(text || '');
+  if (!s.trim()) { res.fatal = 'The file is empty.'; return res; }
+  if (s.length > MAX_CHARS) { res.fatal = 'The file is larger than 1 MB. Split it into smaller files.'; return res; }
+  let recs;
+  if (/\.json$/i.test(filename || '') || /^\s*[\[{]/.test(s)) {
+    let j; try { j = JSON.parse(s); } catch (e) { res.fatal = 'This is not valid JSON.'; return res; }
+    const list = Array.isArray(j) ? j : (j && Array.isArray(j.questions) ? j.questions : null);
+    if (!list) { res.fatal = 'JSON must be a list of questions, or an object with a "questions" list.'; return res; }
+    recs = list.map((v, i) => ({ line: i + 1, v: impNormalizeJson(v) }));
+  } else {
+    const p = impParseCsv(s);
+    if (p.unclosed) { res.fatal = 'A quoted value is not closed. Look for a missing " in the file.'; return res; }
+    const head = p.rows[0].map(h => String(h).trim().toLowerCase().replace(/\s+/g, '_'));
+    const miss = ['round', 'type', 'question'].filter(h => !head.includes(h));
+    if (miss.length) { res.fatal = 'Missing column(s): ' + miss.join(', ') + '. The first row must be the header.'; return res; }
+    recs = p.rows.slice(1).map((r, i) => ({ line: i + 2, v: Object.fromEntries(head.map((h, j) => [h, String(r[j] == null ? '' : r[j]).trim()])) }));
+  }
+  if (!recs.length) { res.fatal = 'No questions found under the header.'; return res; }
+  if (recs.length > MAX_ROWS) { res.fatal = `The file has ${recs.length} questions. The limit is ${MAX_ROWS} per import.`; return res; }
+  const seen = new Map();
+  for (const { line, v } of recs) {
+    const { errors, q } = impCheckRow(v);
+    const key = q.round + '|' + q.t.toLowerCase().replace(/\s+/g, ' ');
+    if (!errors.length) {
+      if (seen.has(key)) errors.push('Duplicate of row ' + seen.get(key));
+      else seen.set(key, line);
+    }
+    res.rows.push({ line, ok: errors.length === 0, errors, q });
+  }
+  const valid = res.rows.filter(r => r.ok);
+  const byRound = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  valid.forEach(r => { byRound[r.q.round]++; });
+  res.summary = { total: res.rows.length, valid: valid.length, invalid: res.rows.length - valid.length, byRound };
+  return res;
+}
+
+
+/*SYNC:end*/
+/* ---------- candidate portal ---------- */
+const MSTONES=[{k:'applied',t:'Applied',s:'Application received'},{k:'r1',t:'Skills test',s:'Round 1'},{k:'r2',t:'Group project',s:'Round 2'},{k:'r3',t:'Reasoning',s:'Round 3'},{k:'r4',t:'Practical task',s:'Round 4'},{k:'r5',t:'Final interview',s:'Round 5'},{k:'offer',t:'Offer',s:'Selection'},{k:'join',t:'Joined',s:'Welcome aboard'}];
+const INFO={
+ applied:{what:'We review your profile and resume against the role. This usually takes 2 to 3 working days.',steps:['Complete your profile and upload your resume','Add a portfolio or GitHub link if you have one','Watch your email and this page for the Round 1 invitation'],tips:['Use the same name on your resume and your profile','A clear one-page resume is quicker to review']},
+ r1:{what:'A timed online test on the core skills for your role. Objective questions are marked automatically. Written answers are read by a person.',steps:['Open the test from the Tests tab','Stay in the test window until you submit','Submit before the timer ends'],tips:['Close other apps and tabs before you start','Charge your device and check your connection','The timer cannot be paused once you begin']},
+ r2:{what:'You work with a small team on a shared project. Assessors look at planning, communication and your own contribution, and score each person separately.',steps:['Read the project brief and your responsibility','Tick off your tasks as you finish them','Add links and upload the team presentation before the deadline'],tips:['Agree who does what on day one','Say what you personally built when you present']},
+ r3:{what:'A scenario exercise with incomplete information and changing limits. We look at how you reason, adapt and decide. There is no single right answer.',steps:['Read the scenario carefully','Say what information you would need','Explain your first steps and why'],tips:['Show your thinking, not only the answer','If the situation changes, say what you would change and why']},
+ r4:{what:'A practical task for your role, done on your own. It confirms you can do the work independently.',steps:['Read the brief and the permitted tools','Build it and write a short explanation of your choices','Submit a link or a file before the deadline'],tips:['A working simple solution beats a broken ambitious one','Explain what you would improve with more time']},
+ r5:{what:'A conversation with HR and a founder about your motivation, projects, goals and joining plans.',steps:['Confirm your interview slot','Prepare two projects you can explain in detail','Join a few minutes early'],tips:['Prepare questions to ask us','Be ready to talk about a mistake and what you learned']},
+ offer:{what:'If you are selected, HR sends your offer with the role, pay and joining date. You can accept or decline on this page.',steps:['Read the offer carefully','Reply before the offer date','Upload any joining documents requested'],tips:['Ask HR if anything in the offer is unclear']},
+ join:{what:'Welcome to Semil. Your joining checklist and first-week plan will appear here.',steps:['Bring original documents on day one','Meet your manager and team','Complete onboarding paperwork'],tips:['Ask questions early. Everyone remembers their first week']}
+};
+const CK='<svg viewBox="0 0 24 24" class="ic"><path d="M5 12l5 5 9-10"/></svg>',PS='<svg viewBox="0 0 24 24" class="ic"><path d="M9 6v12M15 6v12"/></svg>';
+const ILL={
+ applied:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><rect x="28" y="20" width="64" height="84" rx="8" class="f"/><rect x="46" y="12" width="28" height="14" rx="5" class="s"/><path class="s ln" style="--d:.2s" d="M42 58h36"/><path class="s ln" style="--d:.5s" d="M42 72h36"/><path class="s ln" style="--d:.8s" d="M42 86h22"/><path class="s2 dr" d="M40 42l7 7 14-16"/></svg>',
+ r1:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><rect x="16" y="16" width="70" height="88" rx="8" class="f"/><path class="s2 dr" style="--d:.2s" d="M28 40l5 5 9-10"/><path class="s2 dr" style="--d:.8s" d="M28 62l5 5 9-10"/><path class="s2 dr" style="--d:1.4s" d="M28 84l5 5 9-10"/><path class="s" d="M52 42h24M52 64h24M52 86h18"/><circle cx="90" cy="88" r="22" class="f2"/><path class="s" d="M90 88V74"/><path class="s hand" d="M90 88l10 6"/></svg>',
+ r2:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><path class="s mv" d="M30 34L90 34M30 34L30 86M90 34L90 86M30 86L90 86M30 34L90 86M90 34L30 86"/><circle cx="30" cy="34" r="12" class="f n1"/><circle cx="90" cy="34" r="12" class="f n2"/><circle cx="30" cy="86" r="12" class="f n3"/><circle cx="90" cy="86" r="12" class="f n4"/><circle cx="60" cy="60" r="10" class="f2 pulse"/></svg>',
+ r3:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><path class="f glow" d="M60 16a28 28 0 0 0-14 52v10h28V68a28 28 0 0 0-14-52z"/><path class="s" d="M50 88h20M53 98h14"/><path class="s ray" style="--d:0s" d="M60 4v6"/><path class="s ray" style="--d:.3s" d="M22 20l5 4"/><path class="s ray" style="--d:.6s" d="M98 20l-5 4"/><path class="s ray" style="--d:.9s" d="M10 52h6"/><path class="s ray" style="--d:1.2s" d="M110 52h-6"/></svg>',
+ r4:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><rect x="12" y="16" width="96" height="68" rx="8" class="f"/><path class="s" d="M12 32h96"/><path class="s2 bar" style="--d:.1s;--w:44px" d="M24 46h44"/><path class="s2 bar" style="--d:.5s;--w:30px" d="M32 58h30"/><path class="s2 bar" style="--d:.9s;--w:52px" d="M24 70h52"/><g class="up"><path class="s2" d="M60 112V94M52 102l8-8 8 8"/></g></svg>',
+ r5:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><g class="b1"><path class="f" d="M14 20h56a8 8 0 0 1 8 8v22a8 8 0 0 1-8 8H38l-12 12V58h-4a8 8 0 0 1-8-8V28a8 8 0 0 1 8-8z"/><path class="s" d="M26 33h40M26 45h26"/></g><g class="b2"><path class="f2" d="M50 66h56a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8h-4v10l-12-10H50a8 8 0 0 1-8-8V74a8 8 0 0 1 8-8z"/><path class="s" d="M56 80h40"/></g></svg>',
+ offer:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><g class="letter"><rect x="34" y="26" width="52" height="56" rx="5" class="f2"/><path class="s" d="M44 40h32M44 52h32M44 64h18"/></g><path class="f" d="M12 52l48 30 48-30v52a6 6 0 0 1-6 6H18a6 6 0 0 1-6-6z"/><path class="s" d="M12 52l48 30 48-30"/></svg>',
+ join:'<svg viewBox="0 0 120 120" class="il" aria-hidden="true"><circle cx="60" cy="62" r="34" class="f2 pop"/><path class="s2 dr" style="--d:.4s" d="M44 62l12 12 22-24"/><circle class="cf" style="--x:18px;--d:0s;fill:var(--teal)" cx="30" cy="10" r="4"/><circle class="cf" style="--x:-14px;--d:.5s;fill:var(--blue)" cx="60" cy="4" r="4"/><circle class="cf" style="--x:10px;--d:1s;fill:var(--warn)" cx="90" cy="8" r="4"/><circle class="cf" style="--x:-18px;--d:1.5s;fill:var(--teal)" cx="104" cy="14" r="3"/><circle class="cf" style="--x:12px;--d:.8s;fill:var(--blue)" cx="14" cy="16" r="3"/></svg>'
+};
+function jpos(c){const s=c.stage;if(s==='Applied')return 0;if(/^Round/.test(s))return +s[6];if(s==='Selected'||s==='Offer Sent')return 6;if(s==='Offer Accepted')return 7;if(s==='Joined')return 8;return Math.max(1,reached(c))}
+const stopped=c=>c.stage==='Rejected'||c.stage==='On Hold';
+function docsOf(c){if(!c.docs){c.docs=[];if(c.stage!=='Applied'||c.resume)c.docs.push({name:c.resume||c.name.split(' ')[0].toLowerCase()+'_resume.pdf',kind:'Resume',size:184000,at:'Sep 2026'})}return c.docs}
+function completeness(c){const d=docsOf(c);const items=[['Resume uploaded',d.some(x=>x.kind==='Resume')],['Phone number added',!!c.phone],['Skills listed (at least 2)',c.skills.length>=2],['Education details added',!!c.college&&!!c.degree],['Portfolio or GitHub link',!!c.repo||!ROLES.find(r=>r.id===c.role).tech],['Certificate or marksheet uploaded',d.some(x=>x.kind==='Certificate'||x.kind==='Marksheet')]];const n=items.filter(x=>x[1]).length;return{items,pct:Math.round(n/items.length*100)}}
+function fmtDate(s){const d=new Date(s+'T00:00:00');return d.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+function daysLeft(s){const d=Math.ceil((new Date(s+'T23:59:59')-new Date('2026-10-11T12:00:00'))/864e5);return d<0?'closed':d===0?'today':d===1?'1 day left':d+' days left'}
+const asmOf=id=>D.assessments.find(x=>x.id===id);
+function testsFor(c){const i=reached(c);return D.assessments.filter(a=>a.roles.includes(c.role)&&a.status==='Active'&&a.qs.length&&a.time>0&&a.round<=Math.max(i,1)&&c.stage!=='Applied')}
+function attOf(c,id){return(c.attempts||{})[id]||null}
+function ensureAtt(c,a){c.attempts=c.attempts||{};return c.attempts[a.id]||(c.attempts[a.id]={status:'idle',warnings:0,events:[],answers:{},qi:0,remaining_ms:a.time*60000,reinstated_count:0})}
+function testState(c,a){const at=attOf(c,a.id);if(c.scores[a.round-1]!=null||a.round<reached(c))return'done';if(at)return at.status==='idle'?'open':at.status;if(c.submitted&&a.round===reached(c))return'submitted';return'open'}
+const TCHIP={done:['Completed','green'],open:['Ready to start','blue'],in_progress:['In progress','blue'],blocked:['Blocked','red'],ready:['Reinstated: you can resume','amber'],submitted:['Submitted, under review','amber']};
+const tchip=s=>`<span class="chip c-${TCHIP[s][1]}">${TCHIP[s][0]}</span>`;
+function blockedList(){return D.candidates.flatMap(c=>Object.entries(c.attempts||{}).filter(([k,v])=>v.status==='blocked').map(([k,v])=>({c,aid:k,att:v})))}
+const when=t=>new Date(t).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+
+/* ----- journey ----- */
+function journey(c){
+ const cur=jpos(c),st=stopped(c),sel=state.pstage==null?Math.min(cur,7):state.pstage,frac=Math.min(cur,7)/7;
+ const li=MSTONES.map((m,i)=>{const k=cur>=8||i<cur?'done':i===cur?(st?'stop':'cur'):'up';return`<li class="${k}${i===sel?' sel':''}" style="--i:${i}"><button data-a="pstage" data-i="${i}" aria-label="${esc(m.t)}, ${k==='done'?'completed':k==='cur'?'current':k==='stop'?'stopped':'upcoming'}"><span class="nd">${k==='done'?CK:k==='stop'?PS:i+1}</span><span class="nl"><b>${m.t}</b><small>${m.s}</small></span></button></li>`}).join('');
+ return`<div class="jr" style="--f:${frac}"><div class="trk"><i></i></div><ol>${li}</ol></div>`}
+function nextAction(c){
+ const cur=jpos(c);if(stopped(c)){return c.stage==='Rejected'?`<div class="na quiet"><b>Your application has closed</b><p>Thank you for the time you put in. We keep your profile for 12 months and will contact you if a suitable role opens.</p></div>`:`<div class="na quiet"><b>Your application is on hold</b><p>We are not able to move forward right now. HR will email you when there is an update.</p></div>`}
+ const go=(t,l)=>`<button class="btn pri" data-a="ptab" data-t="${t}">${l}</button>`;
+ if(cur===0)return`<div class="na"><b>Next: complete your profile</b><p>Your application is being reviewed. A complete profile is reviewed faster.</p>${go('docs','Open documents')}</div>`;
+ if(cur===1||cur===3){const a=testsFor(c).find(x=>x.round===cur);if(!a)return`<div class="na"><b>Waiting for your test</b><p>HR will assign your test shortly.</p></div>`;const s=testState(c,a);
+  if(s==='blocked')return`<div class="na bad"><b>Your test is blocked</b><p>You left the test window, so it was locked. Your answers are saved. Ask HR to review it.</p>${go('tests','Open Tests')}</div>`;
+  if(s==='submitted')return`<div class="na"><b>Test submitted</b><p>A reviewer will mark your written answers. You will hear from us soon.</p></div>`;
+  if(s==='done')return`<div class="na"><b>Test completed</b><p>Next steps will appear after review.</p></div>`;
+  return`<div class="na"><b>Next: take "${esc(a.title)}"</b><p>${a.time} minutes. The test is locked to this window: leaving it blocks the test.</p>${go('tests',s==='in_progress'||s==='ready'?'Resume test':'Go to Tests')}</div>`}
+ if(cur===2)return`<div class="na"><b>Next: work with your team</b><p>Final submission is due ${fmtDate((D.groups.find(g=>g.members.some(m=>m.cid===c.id))||{deadline:'2026-10-18'}).deadline)}.</p>${go('project','Open group project')}</div>`;
+ if(cur===4)return`<div class="na"><b>${c.submitted?'Task submitted. Under review.':'Next: submit your practical task'}</b><p>${c.submitted?'You can replace your submission until the deadline.':'Due 18 Oct 2026. Add a link or upload a file.'}</p>${go('task',c.submitted?'View submission':'Submit task')}</div>`;
+ if(cur===5){const iv=D.interviews.find(x=>x.cid===c.id&&x.status==='Scheduled');return`<div class="na"><b>${iv?'Your interview is on '+fmtDate(iv.date)+' at '+iv.time:'Your interview will be scheduled soon'}</b><p>${iv?esc(iv.mode):'We will email you three slots to choose from.'}</p>${go('sched','View schedule')}</div>`}
+ if(cur===6)return c.stage==='Selected'?`<div class="na ok"><b>Congratulations, you are selected</b><p>HR is preparing your offer. You will be notified here and by email.</p></div>`:`<div class="na ok"><b>Your offer is ready</b><p>Accept or decline before 20 Oct 2026.</p><div class="row"><button class="btn pri" data-a="offeraccept">Accept offer</button><button class="btn" data-a="offerdecline">Decline</button></div></div>`;
+ if(cur===7)return`<div class="na ok"><b>Offer accepted. Joining soon.</b><p>Bring original documents on your joining day. HR will confirm the date.</p></div>`;
+ return`<div class="na ok"><b>You have joined Semil</b><p>Welcome to the team.</p></div>`}
+function stagePanel(c,i){
+ const m=MSTONES[i],info=INFO[m.k],cur=jpos(c),st=stopped(c),done=cur>=8||i<cur,here=i===cur&&cur<8;
+ const lab=done?['Completed','green']:here?(st?(c.stage==='Rejected'?['Closed','gray']:['On hold','amber']):['You are here','blue']):['Coming up','gray'];
+ return`<section class="sp" key="${m.k}"><div class="ill ${done?'is-done':''}">${ILL[m.k]}</div><div class="spb"><div class="row"><h2>${m.t}</h2><span class="chip c-${lab[1]}">${lab[0]}</span></div><p>${info.what}</p>${here?nextAction(c):''}<h3>${done?'What you did':'What to do'}</h3><ul class="ck">${info.steps.map((s,j)=>`<li class="${done?'on':''}" style="--j:${j}"><span>${done?CK:''}</span>${esc(s)}</li>`).join('')}</ul><h3>Tips</h3><ul class="tp">${info.tips.map(t=>`<li>${esc(t)}</li>`).join('')}</ul></section>`}
+function sideCards(c){const cp=completeness(c),r=34,L=2*Math.PI*r;
+ const dates=[];const g=D.groups.find(g=>g.members.some(m=>m.cid===c.id));if(jpos(c)>=1&&jpos(c)<=4)dates.push(['Round '+Math.max(1,jpos(c))+' closes','2026-10-18']);if(g&&jpos(c)===2)dates.push(['Group project due',g.deadline]);D.interviews.filter(x=>x.cid===c.id&&x.status==='Scheduled').forEach(x=>dates.push(['Interview, Round '+x.round,x.date]));
+ return`<aside class="side2"><div class="card"><h2>Your profile</h2><div class="ring"><svg viewBox="0 0 80 80"><circle cx="40" cy="40" r="${r}" class="rb"/><circle cx="40" cy="40" r="${r}" class="rf" style="--L:${L};--o:${L*(1-cp.pct/100)}"/></svg><b>${cp.pct}%</b></div><ul class="cl">${cp.items.map(x=>`<li class="${x[1]?'on':''}"><span>${x[1]?CK:''}</span>${esc(x[0])}</li>`).join('')}</ul>${cp.pct<100?`<button class="btn sm" data-a="ptab" data-t="docs">Add documents</button>`:''}</div>
+ <div class="card"><h2>Key dates</h2>${dates.length?`<div class="list">${dates.map(d=>`<div><span>${esc(d[0])}</span><span><b>${fmtDate(d[1])}</b><br><small class="hint">${daysLeft(d[1])}</small></span></div>`).join('')}</div>`:'<p class="hint">No dates yet. They appear here when a round opens.</p>'}</div></aside>`}
+function timeline(c){const cur=jpos(c),ev=[['Application received','12 Sep 2026']];['Skills test','Group project','Reasoning exercise','Practical task','Final interview'].forEach((t,i)=>{if(cur>i+1||(cur>=8))ev.push([t+' completed',['24 Sep','01 Oct','05 Oct','09 Oct','10 Oct'][i]+' 2026'])});if(cur>=6)ev.push(['Selected for an offer','10 Oct 2026']);if(c.stage==='Offer Accepted'||c.stage==='Joined')ev.push(['Offer accepted','11 Oct 2026']);if(c.stage==='Rejected')ev.push(['Application closed','10 Oct 2026']);if(c.stage==='On Hold')ev.push(['Application placed on hold','10 Oct 2026']);
+ return`<div class="card"><h2>Your timeline</h2><ol class="tl">${ev.map((e,i)=>`<li style="--i:${i}"><span class="dot"></span><span><b>${esc(e[0])}</b><br><small class="hint">${esc(e[1])} (sample dates)</small></span></li>`).join('')}</ol></div>`}
+
+/* ----- tabs ----- */
+function testsTab(c){const ts=testsFor(c);
+ if(c.stage==='Applied')return`<div class="card">${empty('No tests yet','Your first test opens after your application is reviewed.')}</div>`;
+ if(!ts.length)return`<div class="card">${empty('No tests assigned','Tests appear here when HR assigns them.')}</div>`;
+ return`<div class="banner c-blue">Tests are locked to this window. If you switch tab, minimise, or leave full screen, the test is blocked immediately and HR must reinstate it.</div>`+ts.map(a=>{const s=testState(c,a),lk=a.lock||'strict';return`<div class="card tc"><div class="row" style="justify-content:space-between;align-items:flex-start"><span><b>${esc(a.title)}</b><br><small class="hint">Round ${a.round} · ${a.qs.length} questions · ${a.time} minutes · ${a.attempts} attempt · closes 18 Oct 2026</small><br><span class="lockpill">${lk==='off'?'Practice mode':lk==='warn'?'Locked: 2 warnings':'Locked: leaving blocks the test'}</span></span><span class="row">${tchip(s)}${s==='open'||s==='ready'||s==='in_progress'?`<button class="btn pri" data-a="pretest" data-id="${a.id}">${s==='open'?'Start test':'Resume'}</button>`:''}${s==='blocked'?`<button class="btn" data-a="pretest" data-id="${a.id}">View</button>`:''}</span></div>${a.files&&a.files.length?`<p class="hint">Attached: ${a.files.map(esc).join(', ')}</p>`:''}</div>`}).join('')}
+function projectTab(c){const g=D.groups.find(g=>g.members.some(m=>m.cid===c.id));
+ if(!g)return`<div class="card">${empty('No group yet','Group projects start in Round 2. You will see your team here once HR forms the groups.')}</div>`;
+ const mine=g.members.find(m=>m.cid===c.id),done=g.tasks.filter(t=>t.d).length;
+ return`<div class="grid g2"><div class="card"><h2>${esc(g.name)}</h2><p>${esc(g.project)}</p><div class="kv"><div><small>Deadline</small>${fmtDate(g.deadline)}<br><small class="hint">${daysLeft(g.deadline)}</small></div><div><small>Your responsibility</small>${esc(mine.resp)}</div></div><div class="sec">Team</div><div class="list">${g.members.map(m=>{const x=cand(m.cid)||{name:'?'};return`<div><span>${avatar(x.name)} <b>${esc(x.name.split(' ')[0]+' '+x.name.split(' ')[1][0]+'.')}</b>${m.cid===c.id?' (you)':''}</span><small class="hint">${esc(m.resp)}</small></div>`}).join('')}</div><p class="hint">You are scored on your own contribution. The team output is scored separately.</p></div>
+ <div class="card"><h2>Task checklist</h2><div class="meter"><i style="width:${Math.round(done/g.tasks.length*100)}%"></i></div><p class="hint">${done} of ${g.tasks.length} done</p><div class="list">${g.tasks.map((t,i)=>`<div><label class="opt"><input type="checkbox" data-gtask="${i}" ${t.d?'checked':''}>${esc(t.t)}</label></div>`).join('')}</div></div>
+ <div class="card" style="grid-column:1/-1"><h2>Upload and links</h2>${uploader('proj','Presentation or project file (PDF, PPTX, ZIP, MP4, up to 50 MB)','.pdf,.pptx,.zip,.mp4',50)}<div class="row" style="margin-top:10px"><input id="pl_link" placeholder="https://repository or prototype link" style="flex:1;min-width:200px"><button class="btn" data-a="plink">Add link</button></div><span class="err" id="pl_link_e"></span><div class="list" id="upl_proj" style="margin-top:8px">${[...g.links.map(l=>`<div><a href="${esc(l)}" target="_blank" rel="noopener">${esc(l)}</a><span class="chip c-green">Link added</span></div>`),...(g.files||[]).map(f=>`<div><span>${esc(f.name)} <small class="hint">${(f.size/1048576).toFixed(1)} MB</small></span><span class="chip c-green">Uploaded</span></div>`)].join('')||'<div class="hint">Nothing added yet.</div>'}</div></div></div>`}
+function taskTab(c){const i=jpos(c);
+ if(i<4)return`<div class="card">${empty('Not open yet','Your individual task opens when you reach Round 4.')}</div>`;
+ const br={SDE:'Build a small order-management feature with input validation, order status, basic error handling and a clear explanation of how duplicate submissions are handled.',DEVOPS:'Create a deployment plan, or deploy a sample app in a sandbox. Include health checks, logging, secrets handling and recovery steps.',FE:'Build a responsive product-listing page with search or filters, product cards, an add-to-cart interaction, and loading, empty and error states.',BDA:'Prioritise the fictional merchant leads, prepare a discovery call, respond to objections and write a follow-up plan.',OPS:'Analyse the fictional order data, find delayed deliveries and cancellations, prioritise incidents and propose corrective actions.'}[c.role];
+ const subs=(c.subs=c.subs||(c.submitted&&i===4?[{name:'order-service.zip',size:2400000,at:'06 Oct 2026, 4:10 pm',link:c.repo}]:[]));const stage=subs.length?(i>4?'Reviewed':'Under review'):'Not submitted';
+ return`<div class="grid g2"><div class="card"><h2>Round 4: practical task</h2><p>${esc(br)}</p><div class="kv"><div><small>Deadline</small>18 Oct 2026<br><small class="hint">${daysLeft('2026-10-18')}</small></div><div><small>Permitted tools</small>Any editor, your own notes, public documentation</div></div><div class="steps4"><span class="${subs.length||i>4?'on':'cur'}">Submit</span><span class="${i>4?'on':subs.length?'cur':''}">Review</span><span class="${i>4?'on':''}">Feedback</span></div></div>
+ <div class="card"><h2>${subs.length?'Your submission':'Submit your work'}</h2>${subs.length?`<div class="receipt"><svg viewBox="0 0 24 24" class="ic big"><path class="dr" d="M5 12l5 5 9-10"/></svg><div><b>Received</b><br><small class="hint">${stage}. You can replace it until the deadline.</small></div></div><div class="list">${subs.map(s=>`<div><span>${esc(s.name||'Link only')} <small class="hint">${s.size?(s.size/1048576).toFixed(1)+' MB · ':''}${esc(s.at)}</small></span>${s.link?`<a class="btn sm" href="${esc(s.link)}" target="_blank" rel="noopener">Open link</a>`:''}</div>`).join('')}</div>`:''}${i===4?`<label class="f">Repository or prototype link<input id="p_link" type="url" placeholder="https://"><span class="err" id="p_link_e"></span></label><div style="margin-top:10px">${uploader('task','Upload your work (ZIP or PDF, up to 20 MB)','.zip,.pdf',20)}</div><label class="f" style="margin-top:10px">Notes for the reviewer<textarea id="p_note" placeholder="What did you build, and what would you improve with more time?"></textarea></label><p><button class="btn pri" data-a="ptask">${subs.length?'Replace submission':'Submit task'}</button></p>`:''}</div></div>`}
+function schedTab(c){const iv=D.interviews.filter(x=>x.cid===c.id);
+ return`<div class="grid g2"><div class="card"><h2>Your interviews</h2>${iv.length?`<div class="list">${iv.map(x=>`<div><span><b>Round ${x.round}: ${ROUNDS[x.round-1]}</b><br><small class="hint">${fmtDate(x.date)} at ${x.time}, ${x.dur} minutes<br>${esc(x.mode)}</small></span>${chip(x.status)}</div>`).join('')}</div>`:empty('No interviews yet','We will email you when one is booked.')}</div><div class="card"><h2>How to prepare</h2><ul class="tp">${INFO.r5.tips.concat(['Carry a photo ID for office interviews','Join online interviews five minutes early']).map(t=>`<li>${esc(t)}</li>`).join('')}</ul></div></div>`}
+function docsTab(c){const d=docsOf(c);
+ return`<div class="grid g2"><div class="card"><h2>Add a document</h2><label class="f">Type<select id="doc_kind"><option>Resume</option><option>Certificate</option><option>Marksheet</option><option>Project file</option><option>Other</option></select></label><div style="margin-top:10px">${uploader('doc','PDF, DOCX, PNG or JPG, up to 5 MB','.pdf,.docx,.png,.jpg,.jpeg',5)}</div><p class="hint">Files are stored privately. Only you and the hiring team can open them.</p></div><div class="card"><h2>Your documents</h2><div class="list" id="upl_doc">${d.length?d.map((x,i)=>`<div><span><b>${esc(x.name)}</b><br><small class="hint">${esc(x.kind)} · ${(x.size/1048576).toFixed(2)} MB · ${esc(x.at)}</small></span><button class="btn sm ghost" data-a="rmdoc" data-i="${i}">Remove</button></div>`).join(''):'<div class="hint">No documents yet.</div>'}</div></div></div>`}
+function notesTab(c){const n=[];const cur=jpos(c);if(cur>=1)n.push('Your application was received.');if(cur>=1&&cur<8&&!stopped(c))n.push('Your '+MSTONES[Math.min(cur,7)].t.toLowerCase()+' stage is open.');if(blockedList().some(x=>x.c.id===c.id))n.push('Your test was blocked because you left the test window. HR will review it.');D.interviews.filter(x=>x.cid===c.id&&x.status==='Scheduled').forEach(x=>n.push('Interview scheduled for '+fmtDate(x.date)+' at '+x.time+'.'));if(c.stage==='Offer Sent')n.push('Your offer is ready to review.');
+ return`<div class="card"><h2>Messages</h2>${n.length?`<div class="list">${n.map(t=>`<div>${esc(t)}</div>`).join('')}</div>`:empty('Nothing new','Updates from the hiring team appear here.')}</div>`}
+function uploader(id,label,accept,mb){return`<div class="drop" data-drop="${id}" data-accept="${accept}" data-mb="${mb}"><label class="f">${esc(label)}<input type="file" data-up="${id}" accept="${accept}"></label><span class="err" id="up_${id}_e"></span><div class="uprog" id="up_${id}_p" hidden><div class="meter"><i></i></div><small class="hint">Uploading <span></span></small></div></div>`}
+
+/* ----- secure test views ----- */
+function curAtt(){if(!isCand()||!state.ws)return null;const c=portalCand(),a=asmOf(state.ws);if(!c||!a)return null;const att=attOf(c,a.id);return att?{c,a,att}:null}
+function answered(a,att,i){const v=att.answers[i],q=a.qs[i];if(v==null)return false;if(q.k==='sa'||q.k==='la')return String(v).trim().length>0;if(q.k==='fu')return!!v.name;return v.length>0}
+function preTest(c,a,att){const lk=a.lock||'strict',fs=!!document.fullscreenEnabled;
+ return`<div class="card pre"><div class="lockico"><svg viewBox="0 0 48 48"><rect x="10" y="22" width="28" height="20" rx="4" class="f"/><path class="s" d="M16 22v-6a8 8 0 0 1 16 0v6"/><circle cx="24" cy="32" r="3" class="f2"/></svg></div><h1>${esc(a.title)}</h1><p class="hint">${a.qs.length} questions · ${a.time} minutes · ${att&&att.status==='ready'?'You have '+Math.ceil(att.remaining_ms/60000)+' minutes left from your previous attempt':'Timer starts when you press Start'}</p>
+ <div class="rules"><h3>Rules for this test</h3><ul>${lk==='off'?'<li>This is a practice run. Leaving the window is recorded but does not block you.</li>':lk==='warn'?'<li>The test runs in full screen. You get <b>2 warnings</b> if you leave the window. The third time, the test is blocked.</li>':'<li>The test runs in full screen. <b>If you switch tab, minimise, or exit full screen, the test is blocked immediately.</b></li>'}<li>Copy, paste and right-click are turned off.</li><li>Your answers save automatically. Do not refresh the page.</li><li>If the timer ends, your answers are submitted for you.</li><li>A blocked test can only be reopened by HR, who record a reason.</li></ul></div>
+ <div class="check"><h3>System check</h3><ul class="sc"><li style="--j:0"><span>${CK}</span>Browser supported</li><li style="--j:1" class="${navigator.onLine?'':'no'}"><span>${navigator.onLine?CK:'!'}</span>Connected to the internet</li><li style="--j:2" class="${fs?'':'no'}"><span>${fs?CK:'!'}</span>${fs?'Full screen available':'Full screen not available here. Tab-switch lock still works.'}</li></ul></div>
+ <label class="opt ack"><input type="checkbox" id="ack" data-ack> I have read the rules and I am ready to start.</label>
+ <div class="row"><button class="btn" data-a="wsclose">Not now</button><button class="btn pri" id="beginbtn" data-a="begin" data-id="${a.id}" disabled>${att&&att.status==='ready'?'Resume test':'Start test'}</button></div></div>`}
+function blockedView(c,a,att){const ev=att.events.filter(e=>e.kind==='violation');
+ return`<div class="card blk"><div class="lockico shake"><svg viewBox="0 0 48 48"><rect x="10" y="22" width="28" height="20" rx="4" class="f bad"/><path class="s bad" d="M16 22v-6a8 8 0 0 1 16 0v6"/><path class="s bad" d="M20 28l8 8M28 28l-8 8"/></svg></div><h1>Your test is blocked</h1><p>You left the test window${ev.length?' at <b>'+when(ev[ev.length-1].t)+'</b>':''}, so the test was locked. Your answers up to that moment are saved and sent to HR. Your time is paused.</p>
+ <div class="list">${att.events.map(e=>`<div><span>${esc(e.text)}</span><small class="hint">${when(e.t)}</small></div>`).join('')}</div>
+ ${att.reviewRequested?'<div class="banner c-green" style="margin-top:12px">Review requested. HR has been notified and will contact you.</div>':'<p class="hint">If this was a mistake, for example a power cut or a system pop-up, ask HR to review it.</p>'}
+ <div class="row"><button class="btn" data-a="wsclose">Back to my page</button><button class="btn pri" data-a="askreview" ${att.reviewRequested?'disabled':''}>${att.reviewRequested?'Review requested':'Ask HR to review'}</button></div></div>`}
+function submittedView(a,att){return`<div class="card blk"><div class="lockico"><svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="18" class="f2 pop"/><path class="s2 dr" d="M15 24l7 7 12-14"/></svg></div><h1>Submission received</h1><p>Your answers for <b>${esc(a.title)}</b> were submitted on ${when(att.submitted_at)}${att.auto_submitted?' when the time ended':''}. Reference ${esc(att.ref||'SUB-10482')}.</p><p class="hint">Written answers will be marked by a reviewer. We will tell you what happens next.</p><button class="btn pri" data-a="wsclose">Back to my page</button></div>`}
+function testView(c,a,att){const q=a.qs[att.qi],n=a.qs.length,ans=a.qs.map((_,i)=>answered(a,att,i)),done=ans.filter(Boolean).length,lk=a.lock||'strict';
+ const body=(q.k==='mc'||q.k==='ms')?q.o.map((o,j)=>`<label class="opt big"><input type="${q.k==='mc'?'radio':'checkbox'}" name="q${att.qi}" data-qa="${att.qi}" data-qj="${j}" ${(att.answers[att.qi]||[]).includes(j)?'checked':''}><span>${esc(o)}</span></label>`).join(''):q.k==='fu'?`<label class="f">Upload your file (PDF or ZIP, up to 20 MB)<input type="file" data-qf="${att.qi}" accept=".pdf,.zip"></label><span class="err" id="qf_e"></span>${att.answers[att.qi]&&att.answers[att.qi].name?`<p class="chip c-green">Attached: ${esc(att.answers[att.qi].name)}</p>`:''}`:`<textarea data-qt="${att.qi}" style="min-height:180px" placeholder="Type your answer here">${esc(att.answers[att.qi]||'')}</textarea>`;
+ return`<div class="tbar"><span class="lockpill">${ic('users')} Secure test${lk==='off'?' (practice)':''}</span><b class="tt">${esc(a.title)}</b><span class="timer" id="timer" aria-live="off">--:--</span></div>
+ <div class="meter"><i style="width:${Math.round(done/n*100)}%"></i></div><div class="row" style="justify-content:space-between;margin:6px 0 10px"><small class="hint" id="saved">${att.saved?'Saved '+att.saved:'Answers save automatically'}</small><small class="hint">${done} of ${n} answered${lk==='warn'?' · warnings '+att.warnings+' of 2':''}</small></div>
+ <div class="pager">${a.qs.map((_,i)=>`<button class="pg ${i===att.qi?'on':''} ${ans[i]?'ans':''}" data-a="qgo" data-i="${i}" aria-label="Question ${i+1}${ans[i]?', answered':''}">${i+1}</button>`).join('')}</div>
+ <div class="card qcard" key="${att.qi}"><small class="hint">Question ${att.qi+1} of ${n} · ${q.m} marks${q.k==='ms'?' · select all that apply':''}</small><h2 style="margin:6px 0 12px;font-size:17px">${esc(q.t)}</h2>${body}</div>
+ <div class="row" style="justify-content:space-between;margin-top:12px"><button class="btn" data-a="qgo" data-i="${att.qi-1}" ${att.qi===0?'disabled':''}>Previous</button><span class="row">${att.qi<n-1?`<button class="btn pri" data-a="qgo" data-i="${att.qi+1}">Next</button>`:''}<button class="btn ${att.qi<n-1?'':'pri'}" data-a="askSubmit">Submit answers</button></span></div>
+ <p class="hint" style="margin-top:14px">Prototype only: <button class="btn sm ghost" data-a="simleave">Simulate leaving the page</button> to see the lock without switching tabs.</p>
+ ${att.warnPending?`<div class="modalbg"><div class="modal"><header><h2>Warning ${att.warnings} of 2</h2></header><div><p>You left the test window. Stay on this page for the rest of the test. ${att.warnings>=2?'<b>The next time, your test will be blocked.</b>':'One more warning is allowed.'}</p></div><footer><button class="btn pri" data-a="ackwarn">Continue test</button></footer></div></div>`:''}
+ ${att.confirmSubmit?`<div class="modalbg"><div class="modal"><header><h2>Submit your answers?</h2></header><div><p>${n-done?`<b>${n-done} question(s) are unanswered.</b> `:''}You cannot change answers after submitting.</p></div><footer><button class="btn" data-a="cancelSubmit">Keep working</button><button class="btn pri" data-a="doSubmit">Submit now</button></footer></div></div>`:''}`}
+
+/* ----- shell ----- */
+function renderPortal(){
+ const c=portalCand();const TABS={journey:'My journey',tests:'Tests',project:'Group project',task:'My task',sched:'Interviews',docs:'Documents',notes:'Messages'};
+ if(!TABS[state.pt])state.pt='journey';
+ const pick=`<select id="pcsel" data-pc aria-label="Preview as a candidate at this stage" style="width:auto;max-width:165px;font-size:12px;padding:5px 6px">${STAGES.map(s=>{const x=D.candidates.find(y=>y.stage===s);return x?`<option value="${x.id}"${c&&x.id===c.id?' selected':''}>Preview: ${s}</option>`:''}).join('')}</select>`;
+ const shell=b=>`<div class="top"><span class="logo">N</span><b>Semil Careers</b><span class="grow"></span>${D.candidates.length?pick:''}<button class="btn sm ghost" data-a="umenu">${avatar(c?c.name:'C')}<span class="hide-s">${c?esc(c.name):'Candidate'}</span></button></div>${state.menu?menuHtml():''}<div class="content"><div class="pshell">${b}</div></div>`;
+ if(!c){$('#app').innerHTML=shell(`<div class="card">${empty('No application yet','Create your profile and apply for an open role.')}</div>`);return}
+ if(state.loading){$('#app').innerHTML=shell('<div class="card"><div class="skel" style="width:40%"></div><div class="skel"></div><div class="skel"></div><div class="skel" style="width:70%"></div></div>');return}
+ const ci=curAtt();
+ if(ci&&state.ws){const{a,att}=ci;let v;
+  if(att.status==='in_progress')v=testView(c,a,att);else if(att.status==='blocked')v=blockedView(c,a,att);else if(att.status==='submitted')v=submittedView(a,att);else v=preTest(c,a,att);
+  $('#app').innerHTML=`<div class="content secure"><div class="pshell">${v}</div></div>`;
+  if(att.status==='in_progress')startTimer();return}
+ if(state.ws){const a=asmOf(state.ws);$('#app').innerHTML=`<div class="content secure"><div class="pshell">${preTest(c,a,null)}</div></div>`;return}
+ const cur=jpos(c),sel=state.pstage==null?Math.min(cur,7):state.pstage,pct=Math.round(Math.min(cur,8)/8*100);
+ const nt=testsFor(c).filter(a=>['open','ready','in_progress'].includes(testState(c,a))).length;
+ const tabs=`<div class="tabs ptabs" role="tablist">${Object.keys(TABS).map(k=>`<button role="tab" data-a="ptab" data-t="${k}" class="${state.pt===k?'on':''}">${TABS[k]}${k==='tests'&&nt?`<span class="badge">${nt}</span>`:''}</button>`).join('')}</div>`;
+ let b='';
+ if(state.pt==='journey')b=`<div class="card jcard">${journey(c)}</div><div class="jgrid"><div>${stagePanel(c,sel)}</div>${sideCards(c)}</div>${timeline(c)}`;
+ else b={tests:testsTab,project:projectTab,task:taskTab,sched:schedTab,docs:docsTab,notes:notesTab}[state.pt](c);
+ $('#app').innerHTML=shell(`<div class="hello"><div><h1>Hi ${esc(c.name.split(' ')[0])}, here is where you are</h1><p class="hint">${esc(roleName(c.role))} · ${esc(c.id)}</p></div><div class="row"><span class="chip c-${stopped(c)?(c.stage==='Rejected'?'gray':'amber'):'blue'}">${stopped(c)?c.stage:cur>=8?'Joined':'Step '+(Math.min(cur,7)+1)+' of 8'}</span><span class="pct">${pct}%</span></div></div><div class="demo" style="margin:0 0 10px;border-radius:8px">Prototype candidate view with mock data. Uploads here are not stored.</div>${tabs}${b}`);
+}
+let timerH=null;
+function startTimer(){clearInterval(timerH);const f=()=>{const ci=curAtt();const e=document.getElementById('timer');if(!ci||ci.att.status!=='in_progress'||!e){clearInterval(timerH);return}const s=Math.max(0,Math.round((ci.att.deadline_at-Date.now())/1000));e.textContent=pad(Math.floor(s/60),2)+':'+pad(s%60,2);e.classList.toggle('low',s<300);if(s<=0){clearInterval(timerH);submitAttempt(true)}};f();timerH=setInterval(f,1000)}
+
+/* ----- lock engine ----- */
+let lockOn=false,fsWanted=false,lastV=0,blurT=null;
+function armLock(){if(lockOn)return;lockOn=true;document.addEventListener('visibilitychange',onVis);window.addEventListener('blur',onBlur);document.addEventListener('fullscreenchange',onFs);['copy','cut','paste','contextmenu','dragstart'].forEach(e=>document.addEventListener(e,stopEv,true));window.addEventListener('beforeunload',onUnload)}
+function disarmLock(){if(!lockOn)return;lockOn=false;document.removeEventListener('visibilitychange',onVis);window.removeEventListener('blur',onBlur);document.removeEventListener('fullscreenchange',onFs);['copy','cut','paste','contextmenu','dragstart'].forEach(e=>document.removeEventListener(e,stopEv,true));window.removeEventListener('beforeunload',onUnload);clearTimeout(blurT)}
+function exitFs(){fsWanted=false;try{if(document.fullscreenElement)document.exitFullscreen()}catch(e){}}
+function onVis(){if(document.hidden)violate('Switched to another tab or minimised the window')}
+function onBlur(){clearTimeout(blurT);blurT=setTimeout(()=>{if(lockOn&&!document.hasFocus())violate('Moved away from the test window')},400)}
+function onFs(){if(lockOn&&fsWanted&&!document.fullscreenElement)violate('Exited full screen')}
+function onUnload(e){e.preventDefault();e.returnValue=''}
+function stopEv(e){const ci=curAtt();if(!ci)return;e.preventDefault();ci.att.events.push({t:Date.now(),kind:'note',text:'Blocked a '+e.type+' attempt'})}
+function violate(reason){const ci=curAtt();if(!ci||ci.att.status!=='in_progress')return;const now=Date.now();if(now-lastV<800)return;lastV=now;const{c,a,att}=ci;const r=pxViolation(att,a.lock||'strict');att.events.push({t:now,kind:'violation',text:reason});
+ if(r.action==='block'){Object.assign(att,pxBlock(att,now));att.warnings=r.warnings;disarmLock();exitFs();clearInterval(timerH);D.notifs.unshift({t:`${c.name}'s test "${a.title}" was blocked: ${reason}`,n:1});audit('Test blocked for '+c.name+': '+reason,c.id)}
+ else if(r.action==='warn'){att.warnings=r.warnings;att.warnPending=true;D.notifs.unshift({t:`${c.name} received warning ${r.warnings} of 2 during "${a.title}"`,n:1})}
+ else att.warnings=r.warnings;
+ render()}
+function autoMark(a,ans){let got=0,tot=0;a.qs.forEach((q,i)=>{if(q.k==='mc'||q.k==='ms'){tot+=+q.m||0;const r=ans[i]||[];if(r.length&&r.slice().sort().join()===q.a.slice().sort().join())got+=+q.m||0}});return{got,tot}}
+function submitAttempt(auto){const ci=curAtt();if(!ci)return;const{c,a,att}=ci;const w=pxCanWrite(att,Date.now(),auto?60000:5000);if(!w.ok&&!auto)return;att.status='submitted';att.submitted_at=Date.now();att.auto_submitted=!!auto;att.remaining_ms=0;att.auto=autoMark(a,att.answers);att.ref='SUB-'+Math.floor(Math.random()*90000+10000);att.confirmSubmit=false;c.submitted=true;c.subDays=0;att.events.push({t:Date.now(),kind:'note',text:auto?'Time ended: answers submitted automatically':'Submitted answers'});disarmLock();exitFs();clearInterval(timerH);D.notifs.unshift({t:`${c.name} submitted "${a.title}"`,n:1});audit('Submitted '+a.title+(auto?' (time ended)':''),c.id);render()}
+async function beginTest(id){const c=portalCand(),a=asmOf(id);if(!c||!a)return;const att=ensureAtt(c,a);const box=document.getElementById('ack');if(!box||!box.checked)return;if(!['idle','ready'].includes(att.status))return;
+ Object.assign(att,pxResume(att,Date.now()));att.events.push({t:Date.now(),kind:'start',text:att.reinstated_count?'Resumed after reinstatement':'Started the test'});state.ws=id;
+ if((a.lock||'strict')!=='off'){armLock();try{await document.documentElement.requestFullscreen();fsWanted=true}catch(e){att.events.push({t:Date.now(),kind:'note',text:'Full screen was not available. Tab-switch lock is active.'})}}
+ render()}
+
+/* ---------- HR side: test sessions, blocked tests, question import and bank ---------- */
+const HCH={done:['Completed','green'],open:['Not started','gray'],in_progress:['In progress','blue'],blocked:['Blocked','red'],ready:['Reinstated','amber'],submitted:['Submitted','amber']};
+function assessTab(c){
+ const as=D.assessments.filter(a=>a.roles.includes(c.role)&&a.qs.length&&a.time>0&&a.round<=Math.max(reached(c),1)&&c.stage!=='Applied');
+ if(!as.length)return empty('No assessments assigned','Assign an assessment from the library, or the candidate has not reached a test round yet.');
+ const can2=['SA','HR'].includes(RC[state.role]);
+ const t=`<div class="tw"><table><thead><tr><th>Assessment</th><th>Round</th><th>Status</th><th>Test lock</th><th>Objective score</th><th>Final score</th></tr></thead><tbody>${as.map(a=>{const s=testState(c,a),at=attOf(c,a.id),h=HCH[s];return`<tr><td><b>${esc(a.title)}</b></td><td>R${a.round}</td><td><span class="chip c-${h[1]}">${h[0]}</span></td><td>${{strict:'Strict',warn:'2 warnings',off:'Off'}[a.lock||'strict']}</td><td>${at&&at.auto?at.auto.got+' / '+at.auto.tot:'-'}</td><td>${c.scores[a.round-1]==null?'-':c.scores[a.round-1]}</td></tr>`}).join('')}</tbody></table></div>`;
+ const logs=Object.entries(c.attempts||{}).map(([aid,at])=>{const a=asmOf(aid);if(!a)return'';return`<div class="card" style="margin-top:12px"><div class="row" style="justify-content:space-between"><h3>Test session: ${esc(a.title)}</h3>${at.status==='blocked'&&can2?`<button class="btn sm pri" data-a="reinst" data-id="${c.id}" data-aid="${aid}">Reinstate</button>`:''}</div>${at.status==='blocked'?`<div class="banner c-red" style="margin-top:8px">Blocked. ${Math.ceil(at.remaining_ms/60000)} minutes were left.${at.reviewRequested?' The candidate asked for a review.':''}${can2?'':' Only HR or the Super Admin can reinstate.'}</div>`:''}<div class="list">${at.events.map(e=>`<div><span><span class="chip c-${e.kind==='violation'?'red':e.kind==='note'?'gray':'blue'}">${{violation:'Left window',note:'Note',start:'Started'}[e.kind]||esc(e.kind)}</span> ${esc(e.text)}</span><small class="hint">${when(e.t)}</small></div>`).join('')||'<div class="hint">No events.</div>'}</div></div>`}).join('');
+ return t+logs}
+function blockedCard(){const bl=blockedList(),can2=['SA','HR'].includes(RC[state.role]);
+ return`<div class="card"><h2>Blocked tests${bl.length?' ('+bl.length+')':''}</h2>${bl.length?`<div class="list">${bl.map(x=>{const v=x.att.events.filter(e=>e.kind==='violation').slice(-1)[0];return`<div><span><b>${esc(x.c.name)}</b><br><small class="hint">${esc(asmOf(x.aid).title)}${v?' · '+esc(v.text):''}${x.att.reviewRequested?' · review requested':''}</small></span><span class="row"><button class="btn sm" data-a="opentab" data-id="${x.c.id}" data-t="Assessments">View</button>${can2?`<button class="btn sm pri" data-a="reinst" data-id="${x.c.id}" data-aid="${x.aid}">Reinstate</button>`:''}</span></div>`}).join('')}</div>`:empty('No blocked tests','A test is blocked when a candidate leaves the test window.')}</div>`}
+
+const IMP_TEMPLATE=['round,type,question,option_a,option_b,option_c,option_d,correct,marks,difficulty','1,mcq,"Which HTTP method is idempotent by definition?",POST,PUT,PATCH,CONNECT,B,2,medium','1,multi,"Select all valid ways to prevent duplicate order submission.","Idempotency key","Disable the button only on the client","Unique constraint on order reference","Retry until it works","A;C",3,medium','1,short,"Explain in two sentences what a database index does.",,,,,,3,easy','3,scenario,"Semil has 100 sellers but orders are low. You have 30 days and a limited budget. What do you need to know and what do you do first?",,,,,,20,hard','4,upload,"Upload your order-management feature as a ZIP with a short README.",,,,,,40,medium'].join('\n');
+const KLAB={mc:'Single choice',ms:'Multi-select',sa:'Short answer',la:'Long answer',fu:'File upload'};
+let imp=null;
+function impOpen(){imp={text:'',name:'',res:null,target:'new'};impRender()}
+function impRender(){
+ if(!imp.res){openModal('Import questions',`<p>Add questions for any round, 1 to 5, from a CSV or JSON file. Excel files: save as CSV first. Every row is checked before anything is saved.</p><label class="f">Choose a file (.csv or .json, up to 1 MB)<input type="file" id="imp_file" accept=".csv,.json,.txt"></label><p class="hint" id="imp_name">${imp.name?esc(imp.name)+' loaded. Press Check file.':''}</p><label class="f" style="margin-top:8px">Or paste the rows here<textarea id="imp_text" style="min-height:130px;font-family:ui-monospace,monospace;font-size:12px">${esc(imp.text)}</textarea></label><span class="err" id="imp_err"></span><details style="margin-top:10px"><summary>Columns and example file</summary><p class="hint">round (1 to 5) · type (mcq, multi, short, long, scenario, upload) · question · option_a to option_d · correct (A to D, for example A;C) · marks · difficulty (easy, medium, hard)</p><textarea readonly style="min-height:150px;font-family:ui-monospace,monospace;font-size:12px">${esc(IMP_TEMPLATE)}</textarea><div class="row" style="margin-top:6px"><button class="btn sm" data-a="imptpl">Use this example</button><button class="btn sm" data-a="impcopy">Copy example</button></div></details>`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="impcheck">Check file</button>`,1);return}
+ const r=imp.res,s=r.summary,bad=r.rows.filter(x=>!x.ok);
+ openModal('Review before importing',`<div class="row" style="margin-bottom:8px"><span class="chip c-blue">${s.total} rows read</span><span class="chip c-green">${s.valid} ready</span>${s.invalid?`<span class="chip c-red">${s.invalid} need fixing</span>`:''}</div><div class="row" style="margin-bottom:10px">${[1,2,3,4,5].map(n=>`<span class="chip c-gray">Round ${n}: ${s.byRound[n]}</span>`).join('')}</div>${s.invalid?`<div class="banner c-amber">Rows with problems are skipped. Fix them in your file and import again, or import the ready rows now.</div>`:''}<div class="tw" style="max-height:260px;overflow:auto"><table><thead><tr><th>Row</th><th>Round</th><th>Type</th><th>Question</th><th>Marks</th><th>Result</th></tr></thead><tbody>${r.rows.slice(0,150).map(x=>`<tr><td>${x.line}</td><td>${x.q.round||'-'}</td><td>${x.q.k?KLAB[x.q.k]:'-'}</td><td>${esc((x.q.t||'').slice(0,70))}</td><td>${x.q.m}</td><td>${x.ok?'<span class="chip c-green">Ready</span>':`<span class="chip c-red">Fix</span> <small class="err">${esc(x.errors.join('. '))}</small>`}</td></tr>`).join('')}</tbody></table></div>${r.rows.length>150?`<p class="hint">Showing the first 150 rows.</p>`:''}<label class="f" style="margin-top:12px">Add the questions to<select id="imp_target"><option value="new">New draft for each round (recommended)</option>${D.assessments.map(a=>`<option value="${a.id}">${esc(a.title)} (Round ${a.round}, only Round ${a.round} rows)</option>`).join('')}</select></label>`,`<button class="btn" data-a="impback">Back</button><button class="btn pri" data-a="impcommit" ${s.valid?'':'disabled'}>Import ${s.valid} question${s.valid===1?'':'s'}</button>`,1)}
+function impCommit(){
+ const valid=imp.res.rows.filter(x=>x.ok),target=document.getElementById('imp_target').value;let n=0,skipped=0;
+ if(target==='new'){const made={};valid.forEach(x=>{const r=x.q.round;if(!made[r]){const a={id:'A'+(D.assessments.length+1),title:'Imported questions, Round '+r,type:'Imported question set',round:r,roles:ROLES.map(z=>z.id),diff:'Medium',time:(r===1||r===3)?45:0,pass:50,attempts:1,eval:'Auto + manual',status:'Draft',ver:1,vh:['v1: imported from '+(imp.name||'pasted rows')],qs:[],rubric:['Accuracy','Clarity'],lock:(r===1||r===3)?'strict':'off',files:[]};D.assessments.push(a);made[r]=a}made[r].qs.push({t:x.q.t,k:x.q.k,o:x.q.o,a:x.q.a,m:x.q.m,diff:x.q.diff});n++});audit(`Imported ${n} questions into ${Object.keys(made).length} new draft assessment(s) from ${imp.name||'pasted rows'}`)}
+ else{const a=asmOf(target);valid.forEach(x=>{if(x.q.round===a.round){a.qs.push({t:x.q.t,k:x.q.k,o:x.q.o,a:x.q.a,m:x.q.m,diff:x.q.diff});n++}else skipped++});a.ver++;a.vh.unshift('v'+a.ver+': imported '+n+' questions from '+(imp.name||'pasted rows'));audit(`Imported ${n} questions into "${a.title}"`)}
+ closeModal();imp=null;toast(`${n} question${n===1?'':'s'} imported${skipped?`, ${skipped} skipped (other round)`:''}.`);render()}
+function questionBank(){const all=D.assessments.flatMap(a=>a.qs.map((q,i)=>({a,q,i}))),r=state.qbr||0,rows=all.filter(x=>!r||x.a.round===r);
+ return`<div class="sec">Question bank</div><div class="row" style="margin-bottom:8px"><button class="btn sm ${!r?'pri':''}" data-a="qbr" data-r="0">All (${all.length})</button>${[1,2,3,4,5].map(n=>`<button class="btn sm ${r===n?'pri':''}" data-a="qbr" data-r="${n}">Round ${n} (${all.filter(x=>x.a.round===n).length})</button>`).join('')}</div>${rows.length?`<div class="tw"><table><thead><tr><th>Round</th><th>Type</th><th>Question</th><th>Marks</th><th>Assessment</th></tr></thead><tbody>${rows.slice(0,60).map(x=>`<tr><td>R${x.a.round}</td><td>${KLAB[x.q.k]||x.q.k}</td><td>${esc(x.q.t.slice(0,90))}</td><td>${x.q.m}</td><td>${esc(x.a.title)}</td></tr>`).join('')}</tbody></table></div>${rows.length>60?`<p class="hint">Showing 60 of ${rows.length}.</p>`:''}`:`<div class="card">${empty('No questions for this round yet','Import a file or open an assessment to add questions.',can('create')||RC[state.role]==='SA'?`<button class="btn pri" data-a="impopen">Import questions</button>`:'')}</div>`}`}
+function assessments(){return assessmentsBase()+questionBank()}
+
+/* ---------- uploads (prototype: files are checked and shown, not stored) ---------- */
+function handleUpload(id,file){
+ const box=document.querySelector(`[data-drop="${id}"]`);if(!box)return;const err=document.getElementById('up_'+id+'_e'),acc=box.dataset.accept.split(','),mb=+box.dataset.mb,ext='.'+file.name.split('.').pop().toLowerCase();
+ let m='';if(!acc.includes(ext))m='Only '+acc.join(', ')+' files are accepted.';else if(!file.size)m='The file is empty.';else if(file.size>mb*1048576)m='The file is larger than '+mb+' MB.';
+ err.textContent=m;if(m)return;
+ const p=document.getElementById('up_'+id+'_p');p.hidden=false;const bar=p.querySelector('i'),lbl=p.querySelector('span');lbl.textContent=file.name;let n=0;
+ const iv=setInterval(()=>{n=Math.min(100,n+Math.random()*16+8);bar.style.width=n+'%';if(n>=100){clearInterval(iv);finishUpload(id,file)}},110)}
+function finishUpload(id,file){const c=portalCand();if(!c)return;
+ if(id==='doc'){const k=(document.getElementById('doc_kind')||{}).value||'Other';docsOf(c).push({name:file.name,kind:k,size:file.size,at:'Today'});audit('Uploaded '+k+': '+file.name,c.id);toast('Uploaded '+file.name);render()}
+ else if(id==='proj'){const g=D.groups.find(g=>g.members.some(m=>m.cid===c.id));if(!g)return;g.files=g.files||[];g.files.push({name:file.name,size:file.size});audit('Uploaded team file '+file.name,c.id);toast('Uploaded '+file.name);render()}
+ else if(id==='task'){state.pendingTask={name:file.name,size:file.size};toast('File ready. Press Submit task to send it.');const p=document.getElementById('up_task_p');if(p)p.querySelector('small').textContent='Ready to submit: '+file.name}}
+
+/* ---------- actions ---------- */
+function go(v){state.view=v;state.nav=false;state.menu=false;if(v!=='candnew')state.edit=null;try{history.replaceState(null,'','#'+v)}catch(e){}render();const c=$('#content');if(c)c.scrollTop=0}
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-a]');if(!t){if(state.menu&&!e.target.closest('.menu')){state.menu=false;render()}return}
+ if(t.dataset.a==='bg'&&e.target!==t)return;
+ const a=t.dataset.a,id=t.dataset.id,d=t.dataset;
+ const A={
+ go:()=>go(d.v),nav:()=>{state.nav=!state.nav;render()},umenu:()=>{state.menu=!state.menu;render()},
+ role:()=>{state.role=d.r;state.menu=false;state.ws=null;disarmLock();exitFs();clearInterval(timerH);state.pstage=null;if(d.r==='Candidate'){state.loading=true;setTimeout(()=>{state.loading=false;render()},700)}else if(!NAV.find(n=>n[0]===state.view&&n[2].includes(RC[d.r])))state.view='dashboard';render()},
+ mode:()=>{state.mode=d.m;D=d.m==='sample'?build():EMPTYD();state.menu=false;state.f={};render()},
+ theme:()=>{const r=document.documentElement,dk=r.dataset.theme==='dark'||(!r.dataset.theme&&matchMedia('(prefers-color-scheme:dark)').matches);r.dataset.theme=dk?'light':'dark';state.menu=false;render()},
+ expire:()=>{state.sess='expired';state.menu=false;render()},resume:()=>{state.sess='ok';render()},
+ qc:()=>openModal('Quick create',`<div class="row">${[['Candidate','candnew'],['Vacancy','jobs'],['Assessment','assessments'],['Campaign','campaigns'],['Interview','interviews']].map(x=>`<button class="btn" data-a="qcgo" data-v="${x[1]}">${x[0]}</button>`).join('')}</div>`),
+ qcgo:()=>{closeModal();go(d.v);if(d.v==='jobs')vacForm();if(d.v==='campaigns')campForm();if(d.v==='interviews')ivForm();if(d.v==='assessments'){state.draft=newDraft();go('builder')}},
+ close:()=>closeModal(),bg:()=>closeModal(),
+ clearf:()=>{state.f={};render()},open:()=>{state.cid=id;state.tab='overview';go('candidate')},tab:()=>{state.tab=d.t;render()},
+ savecand:saveCand,editcand:()=>{state.edit=cand(id);go('candnew')},
+ signed:()=>openModal('Expiring link',`<p>A signed link to this resume was generated. It expires in 10 minutes and is logged.</p><p class="hint">In production the API checks your role, then returns a short-lived URL from private storage.</p>`),
+ override:()=>overrideModal(id),
+ doover:()=>{const r=val('m_reason');if(setErr('m_reason',r.length<5?'Enter a reason of at least 5 characters.':''))return;const c=cand(id),n=val('m_stage');if(n===c.stage){closeModal();return}audit(`Stage changed from ${c.stage} to ${n}. Reason: ${r}`,id);c.stage=n;closeModal();toast('Stage updated and logged.');render()},
+ pmode:()=>{state.pmode=d.m;render()},
+ newvac:()=>vacForm(),editvac:()=>vacForm(D.vacancies.find(v=>v.id===id)),dupvac:()=>vacForm(Object.assign({},D.vacancies.find(v=>v.id===id),{dup:1,title:D.vacancies.find(v=>v.id===id).title+' (copy)'})),
+ savevac:()=>{if(setErr('v_title',val('v_title').length<3?'Enter a job title.':''))return;if(setErr('v_open',+val('v_open')<1?'At least 1 opening.':''))return;const o={title:val('v_title'),dept:val('v_dept'),role:val('v_role'),open:+val('v_open'),salary:val('v_sal'),loc:val('v_loc'),type:val('v_type'),deadline:val('v_dead'),tpl:val('v_tpl'),mgr:val('v_mgr'),req:val('v_req'),crit:val('v_crit'),status:d.s};if(id){Object.assign(D.vacancies.find(v=>v.id===id),o)}else D.vacancies.push(Object.assign({id:'V'+(D.vacancies.length+1)},o));audit((d.s==='Active'?'Published':'Saved draft of')+' vacancy '+o.title);closeModal();toast(d.s==='Active'?'Vacancy published.':'Draft saved.');render()},
+ vstat:()=>{const v=D.vacancies.find(x=>x.id===id);v.status=d.s;audit((d.s==='Active'?'Published':'Closed')+' vacancy '+v.title);toast('Vacancy '+(d.s==='Active'?'published':'closed')+'.');render()},
+ newcamp:()=>{state.view==='campaigns'||go('campaigns');campForm()},
+ savecamp:()=>{if(setErr('c_name',val('c_name').length<3?'Enter a campaign name.':''))return;D.campaigns.push({id:'C'+(D.campaigns.length+1),name:val('c_name'),colleges:val('c_c').split(',').map(x=>x.trim()).filter(Boolean),start:val('c_s'),end:val('c_e'),target:+val('c_t'),status:'Active'});audit('Created campaign '+val('c_name'));closeModal();toast('Campaign created.');render()},
+ newasm:()=>{state.draft=newDraft();go('builder')},editasm:()=>{state.draft=JSON.parse(JSON.stringify(D.assessments.find(x=>x.id===id)));state.draft.instr=state.draft.instr||'';state.draft.tools=state.draft.tools||'';state.draft.start=state.draft.start||'';state.draft.end=state.draft.end||'';go('builder')},
+ dupasm:()=>{const s=JSON.parse(JSON.stringify(D.assessments.find(x=>x.id===id)));s.id='A'+(D.assessments.length+1);s.title+=' (copy)';s.status='Draft';s.ver=1;s.vh=[];D.assessments.push(s);toast('Duplicated as draft.');render()},
+ prevasm:()=>openModal('Preview',candPreview(D.assessments.find(x=>x.id===id)),null,1),prevdraft:()=>openModal('Preview',candPreview(state.draft),null,1),
+ histasm:()=>{const s=D.assessments.find(x=>x.id===id);openModal('Version history',`<div class="list">${s.vh.map(x=>`<div>${esc(x)}</div>`).join('')}</div>`)},
+ addq:()=>{state.draft.qs.push({t:'',k:'mc',o:['','','',''],a:[],m:2});render()},delq:()=>{state.draft.qs.splice(+d.i,1);render()},addopt:()=>{state.draft.qs[+d.i].o.push('');render()},
+ savedraft:()=>{const x=state.draft;if(x.title.trim().length<3){toast('Add a title first.',1);return}const tm=x.qs.reduce((s,q)=>s+(+q.m||0),0);if(d.s==='Active'&&/question|Technical|Logical|Short|Long/.test(x.type)&&!x.qs.length){toast('Add at least one question before publishing.',1);return}if(x.qs.some(q=>!q.t.trim())){toast('Every question needs text.',1);return}if(x.qs.some(q=>(q.k==='mc'||q.k==='ms')&&(!q.a.length||q.o.some(o=>!o.trim())))){toast('Fill every option and mark the correct answer.',1);return}x.status=d.s;if(x.id){x.ver++;x.vh.unshift('v'+x.ver+': saved by '+me());const i=D.assessments.findIndex(y=>y.id===x.id);D.assessments[i]=JSON.parse(JSON.stringify(x))}else{x.id='A'+(D.assessments.length+1);x.vh=['v1: first draft'];D.assessments.push(JSON.parse(JSON.stringify(x)))}audit((d.s==='Active'?'Published':'Saved')+' assessment '+x.title);toast(d.s==='Active'?'Assessment published.':'Draft saved.');go('assessments')},
+ pickg:()=>{state.gid=id;render()},opengroup:()=>{state.gid=id;go('groups')},
+ gtask:()=>{},gscore:()=>{const g=D.groups.find(x=>x.id===state.gid),m=g.members[+d.i],v=val('gs_'+d.i);if(v===''||+v<0||+v>100){toast('Enter a score from 0 to 100.',1);return}cand(m.cid).scores[1]=Math.round(+v);audit('Scored group contribution '+v+' for '+cand(m.cid).name,m.cid);toast('Individual score saved.');render()},
+ gteam:()=>{const g=D.groups.find(x=>x.id===state.gid),v=val('g_team');if(v===''||+v<0||+v>100){toast('Enter a score from 0 to 100.',1);return}g.team=+v;audit('Recorded team output score for '+g.name);toast('Team score saved. Individual scores are unchanged.')},
+ gobs:()=>{D.groups.find(x=>x.id===state.gid).obs=val('g_obs');toast('Observations saved.')},
+ glink:()=>{const l=val('g_link');if(!/^https?:\/\/\S+\.\S+/.test(l)){toast('Enter a full URL starting with https://',1);return}D.groups.find(x=>x.id===state.gid).links.push(l);render()},
+ gpres:()=>{const f=document.getElementById('g_pres').files[0];if(!f){toast('Choose a file first.',1);return}if(!/\.(pdf|pptx|mp4)$/i.test(f.name)){toast('Only PDF, PPTX or MP4 files.',1);return}D.groups.find(x=>x.id===state.gid).pres=f.name;toast('Presentation attached.');render()},
+ newgroup:()=>openModal('Create group',`<div class="form">${field('Group name','n_name',{req:1,full:1})}${field('Track','n_kind',{opts:['Technical','Business']})}${field('Deadline','n_dead',{type:'date',v:'2026-10-20'})}${field('Project brief','n_proj',{ta:1,full:1,v:'Build a marketplace website prototype with homepage, product listing, product details, navigation and a basic cart interaction.'})}<label class="f full">Assign candidates (Round 2)<span class="list">${D.candidates.filter(c=>c.stage==='Round 2'||c.stage==='Round 3').map(c=>`<label class="opt"><input type="checkbox" data-mem="${c.id}">${esc(c.name)} · ${c.role}</label>`).join('')||'<small class="hint">No candidates are in Round 2 yet.</small>'}</span></label></div>`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="savegroup">Create group</button>`),
+ savegroup:()=>{if(setErr('n_name',val('n_name').length<3?'Enter a group name.':''))return;const m=[...document.querySelectorAll('[data-mem]:checked')].map(x=>({cid:x.dataset.mem,resp:'To be assigned'}));const g={id:'G'+(D.groups.length+1),name:val('n_name'),kind:val('n_kind'),project:val('n_proj'),deadline:val('n_dead'),team:null,pres:'Not uploaded',obs:'',links:[],tasks:[{t:'Agree on plan and roles',d:0}],members:m};D.groups.push(g);state.gid=g.id;audit('Created group '+g.name);closeModal();toast('Group created.');render()},
+ newiv:()=>{if(state.view!=='interviews')go('interviews');ivForm(null,id)},
+ saveiv:()=>{const nw=!id;const iv=nw?{id:'IV-'+(D.interviews.length+1),cid:val('i_c'),round:+val('i_r'),who:val('i_w'),date:val('i_d'),time:val('i_t'),dur:+val('i_u'),mode:val('i_m'),status:'Scheduled',reminder:'Pending',instr:val('i_n')}:Object.assign({},D.interviews.find(x=>x.id===id),{date:val('i_d'),time:val('i_t'),dur:+val('i_u')});if(!iv.date||!iv.time||!(iv.dur>0)){document.getElementById('i_conf').innerHTML='<div class="banner c-red">Enter a date, time and duration.</div>';return}const cf=conflict(iv,id);if(cf){document.getElementById('i_conf').innerHTML=`<div class="banner c-red">Conflict: ${esc(cf.who)} / ${esc((cand(cf.cid)||{}).name)} already has an interview at ${cf.time} on ${cf.date}. Pick another time.</div>`;return}if(nw)D.interviews.push(iv);else Object.assign(D.interviews.find(x=>x.id===id),iv);audit((nw?'Scheduled':'Rescheduled')+' interview for '+(cand(iv.cid)||{}).name,iv.cid);closeModal();toast(nw?'Interview scheduled.':'Interview rescheduled.');render()},
+ resched:()=>ivForm(D.interviews.find(x=>x.id===id)),
+ cancel:()=>{D.interviews.find(x=>x.id===id).status='Cancelled';audit('Cancelled interview '+id);toast('Interview cancelled.');render()},done:()=>{D.interviews.find(x=>x.id===id).status='Done';toast('Marked complete. Evaluation link is now available.');render()},
+ opensc:()=>{state.sc.cid=id;go('scorecards')},
+ savesc:()=>{const c=cand(id),r=state.sc.round,cr=CRIT[r-1],rt=state.sc.r[id+r]||{};if(!cr.every(x=>rt[x])){toast('Rate every criterion first.',1);return}if(val('sc_ev').length<10){toast('Add written evidence for the ratings.',1);return}const s=Math.round(cr.reduce((a,x)=>a+ +rt[x],0)/(5*cr.length)*100);c.scores[r-1]=s;if(reached(c)===r)c.submitted=false;audit(`Saved Round ${r} score ${s} (${val('sc_rec')})`,id);toast('Round '+r+' score saved: '+s);render()},
+ ovr:()=>confirmReason('Record override','Documents a human decision that differs from the calculated result.',`data-a="doovr" data-id="${id}"`,'Record override'),
+ doovr:()=>{const r=val('m_reason');if(setErr('m_reason',r.length<5?'Enter a reason of at least 5 characters.':''))return;cand(id).override={by:me(),decision:'Approved by Founder',reason:r};audit('Override recorded: '+r,id);closeModal();toast('Override recorded.');render()},
+ ostage:()=>{const c=cand(id);audit(`Offer workflow: ${c.stage} to ${d.s}`,id);c.stage=d.s;toast('Updated to '+d.s+'.');render()},
+ csv:()=>openModal('CSV export',`<p class="hint">Downloads are disabled in this preview, so copy the CSV below.</p><textarea id="csvt" style="min-height:220px;font-family:monospace;font-size:12px">${esc(csvText())}</textarea>`,`<button class="btn" data-a="close">Close</button><button class="btn pri" data-a="copycsv">Copy CSV</button>`,1),
+ copycsv:()=>{const e=document.getElementById('csvt');e.select();(navigator.clipboard?navigator.clipboard.writeText(e.value):Promise.reject()).then(()=>toast('CSV copied.')).catch(()=>toast('Press Ctrl/Cmd+C to copy the selected text.'))},
+ readall:()=>{D.notifs.forEach(n=>n.n=0);render()},invite:()=>toast('Invitations are sent by the API in the real system.'),
+ savecfg:()=>{const sum=state.cfg.w.reduce((a,b)=>a+b,0);if(sum!==100){toast('Weights must total 100%. Currently '+sum+'%.',1);return}audit('Updated scoring weights and thresholds');toast('Scoring rules saved.');render()},
+ ptab:()=>{state.pt=d.t;render()}
+ };
+ if(A[a])A[a]();
+});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.f!==undefined){state.f[t.dataset.f]=t.value;renderCandTable()}
+ if(t.dataset.b){const k=t.dataset.b;state.draft[k]=k==='rubric'?t.value.split(',').map(x=>x.trim()).filter(Boolean):['time','pass','attempts','round'].includes(k)?+t.value:t.value}
+ if(t.dataset.q!==undefined&&t.dataset.k&&t.tagName!=='SELECT'){const q=state.draft.qs[+t.dataset.q];q[t.dataset.k]=t.dataset.k==='m'?+t.value:t.value}
+ if(t.dataset.opt!==undefined)state.draft.qs[+t.dataset.q].o[+t.dataset.opt]=t.value;
+ if(t.dataset.gm!==undefined){D.groups.find(x=>x.id===state.gid).members[+t.dataset.gm].resp=t.value}
+ if(t.dataset.w!==undefined&&state.view==='settings'){state.cfg.w[+t.dataset.w]=+t.value||0;const s=state.cfg.w.reduce((a,b)=>a+b,0),e=document.getElementById('wsum');e.textContent='Total '+s+'%';e.className='chip c-'+(s===100?'green':'red')}
+ if(t.dataset.t!==undefined)state.cfg.t[+t.dataset.t]=+t.value||0;
+ if(t.dataset.target!==undefined)state.cfg.target=+t.value||0;
+});
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.f!==undefined){state.f[t.dataset.f]=t.value;renderCandTable()}
+ if(t.dataset.role){const r=state.draft.roles,i=r.indexOf(t.dataset.role);if(t.checked&&i<0)r.push(t.dataset.role);if(!t.checked&&i>=0)r.splice(i,1)}
+ if(t.dataset.q!==undefined&&t.dataset.k==='k'){const q=state.draft.qs[+t.dataset.q];q.k=t.value;q.a=[];if((t.value==='mc'||t.value==='ms')&&!q.o.length)q.o=['','','',''];render()}
+ if(t.dataset.key!==undefined){const q=state.draft.qs[+t.dataset.q],j=+t.dataset.key;if(q.k==='mc')q.a=[j];else{const i=q.a.indexOf(j);if(t.checked&&i<0)q.a.push(j);if(!t.checked&&i>=0)q.a.splice(i,1)}}
+ if(t.dataset.sc){if(t.dataset.sc==='cid')state.sc.cid=t.value;else state.sc.round=+t.value;render()}
+ if(t.dataset.rate){const k=(state.sc.cid||visible()[0].id)+state.sc.round;(state.sc.r[k]=state.sc.r[k]||{})[t.dataset.rate]=t.value;render()}
+ if(t.dataset.rep){state.rep[t.dataset.rep]=t.value;render()}
+ if(t.dataset.a==='gtask'){const g=D.groups.find(x=>x.id===state.gid);g.tasks[+t.dataset.i].d=t.checked?1:0;audit('Updated checklist in '+g.name)}
+});
+document.addEventListener('click',e=>{const th=e.target.closest('th[data-sort]');if(th){const k=th.dataset.sort;state.sort=state.sort.k===k?{k,d:-state.sort.d}:{k,d:1};renderCandTable()}});
+document.addEventListener('submit',e=>{if(e.target.id==='gs'){e.preventDefault();state.f={q:val('gq')};go('candidates')}});
+addEventListener('hashchange',()=>{const v=location.hash.slice(1);if(v&&v!==state.view&&!isCand()&&{dashboard,candidates,jobs,campaigns,assessments,groups,pipeline,interviews,scorecards,offers,reports,notifications,users,settings}[v]){state.view=v;render()}});
+{const h=location.hash.slice(1);if(['dashboard','candidates','jobs','campaigns','assessments','groups','pipeline','interviews','scorecards','offers','reports','notifications','users','settings'].includes(h))state.view=h}
+/* ---------- extra actions: test lock, journey, uploads, import ---------- */
+document.addEventListener('click',e=>{
+ const t=e.target.closest('[data-a]');if(!t)return;
+ const a=t.dataset.a,id=t.dataset.id,d=t.dataset;
+ const B={
+ pretest:()=>{state.ws=id;state.menu=false;render()},
+ begin:()=>beginTest(id),
+ wsclose:()=>{state.ws=null;disarmLock();exitFs();clearInterval(timerH);render()},
+ qgo:()=>{const ci=curAtt();if(!ci||ci.att.status!=='in_progress')return;ci.att.qi=Math.max(0,Math.min(ci.a.qs.length-1,+d.i));render()},
+ askSubmit:()=>{const ci=curAtt();if(!ci)return;ci.att.confirmSubmit=true;render()},
+ cancelSubmit:()=>{const ci=curAtt();if(!ci)return;ci.att.confirmSubmit=false;render()},
+ doSubmit:()=>submitAttempt(false),
+ simleave:()=>violate('Simulated: switched to another tab'),
+ ackwarn:()=>{const ci=curAtt();if(!ci)return;ci.att.warnPending=false;render()},
+ askreview:()=>{const ci=curAtt();if(!ci)return;ci.att.reviewRequested=true;D.notifs.unshift({t:`${ci.c.name} asked for a review of a blocked test`,n:1});audit('Requested review of blocked test',ci.c.id);toast('HR has been notified.');render()},
+ pstage:()=>{state.pstage=+d.i;render()},
+ opentab:()=>{state.cid=id;state.tab=d.t;go('candidate')},
+ reinst:()=>{if(!['SA','HR'].includes(RC[state.role])){toast('Only HR or the Super Admin can reinstate a test.',1);return}confirmReason('Reinstate this test','The candidate gets back the time they had left and must accept the rules again before resuming. Your reason is stored in the audit trail.',`data-a="doreinst" data-id="${id}" data-aid="${d.aid}"`,'Reinstate test')},
+ doreinst:()=>{const r=val('m_reason');if(setErr('m_reason',r.length<5?'Enter a reason of at least 5 characters.':''))return;const c=cand(id),at=attOf(c,d.aid);try{Object.assign(at,pxReinstate(at,Date.now(),r))}catch(x){toast(x.message,1);return}at.reviewRequested=false;at.events.push({t:Date.now(),kind:'note',text:'Reinstated by '+me()+': '+r});audit(`Reinstated test "${asmOf(d.aid).title}" for ${c.name}. Reason: ${r}`,c.id);closeModal();toast('Reinstated. '+c.name.split(' ')[0]+' can resume with '+Math.ceil(at.remaining_ms/60000)+' minutes left.');render()},
+ impopen:()=>impOpen(),
+ imptpl:()=>{const ta=document.getElementById('imp_text');if(ta){ta.value=IMP_TEMPLATE;imp.name='example.csv'}},
+ impcopy:()=>{(navigator.clipboard?navigator.clipboard.writeText(IMP_TEMPLATE):Promise.reject()).then(()=>toast('Example copied.')).catch(()=>toast('Select the example text and copy it.',1))},
+ impcheck:()=>{const ta=document.getElementById('imp_text');imp.text=ta?ta.value:'';const res=impParse(imp.text,imp.name);if(res.fatal){document.getElementById('imp_err').textContent=res.fatal;return}imp.res=res;impRender()},
+ impback:()=>{imp.res=null;impRender()},
+ impcommit:()=>impCommit(),
+ qbr:()=>{state.qbr=+d.r;render()},
+ plink:()=>{const c=portalCand(),g=D.groups.find(g=>g.members.some(m=>m.cid===c.id)),l=val('pl_link'),er=document.getElementById('pl_link_e');if(!/^https?:\/\/\S+\.\S+/.test(l)){er.textContent='Enter a full link starting with https://';return}g.links.push(l);audit('Added team link',c.id);toast('Link added.');render()},
+ rmdoc:()=>{const c=portalCand();docsOf(c).splice(+d.i,1);render()},
+ ptask:()=>{const c=portalCand(),l=val('p_link'),f=state.pendingTask;if(!l&&!f){setErr('p_link','Add a link or upload a file.');return}if(l&&!/^https?:\/\/\S+\.\S+/.test(l)){setErr('p_link','Enter a full link starting with https://');return}c.subs=[{name:f?f.name:'',size:f?f.size:0,at:new Date().toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}),link:l}];c.submitted=true;c.subDays=0;state.pendingTask=null;D.notifs.unshift({t:`${c.name} submitted the Round 4 task`,n:1});audit('Submitted Round 4 task',c.id);toast('Task submitted.');render()},
+ offeraccept:()=>openModal('Accept your offer',`<p>You are accepting the offer for <b>${esc(roleName(portalCand().role))}</b>. HR will confirm your joining date.</p>`,`<button class="btn" data-a="close">Cancel</button><button class="btn pri" data-a="dooffer" data-s="Offer Accepted">Accept offer</button>`),
+ offerdecline:()=>openModal('Decline the offer',`<p>Are you sure? HR will be told and may contact you to understand your decision.</p>`,`<button class="btn" data-a="close">Keep offer</button><button class="btn dng" data-a="dooffer" data-s="On Hold">Decline offer</button>`),
+ dooffer:()=>{const c=portalCand(),acc=d.s==='Offer Accepted';c.stage=d.s;audit(acc?'Accepted the offer':'Declined the offer',c.id);D.notifs.unshift({t:`${c.name} ${acc?'accepted':'declined'} the offer`,n:1});closeModal();state.pstage=null;toast(acc?'Offer accepted. Welcome to Semil.':'Your response was sent to HR.');render()}
+ };
+ if(B[a])B[a]()});
+document.addEventListener('input',e=>{const t=e.target;
+ if(t.dataset.qt!==undefined){const ci=curAtt();if(!ci||ci.att.status!=='in_progress')return;ci.att.answers[+t.dataset.qt]=t.value;stamp(ci.att)}});
+function stamp(att){att.saved=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});const s=document.getElementById('saved');if(s)s.textContent='Saved '+att.saved}
+document.addEventListener('change',e=>{const t=e.target;
+ if(t.dataset.pc!==undefined){state.pcid=t.value;state.pstage=null;state.pt='journey';state.ws=null;disarmLock();exitFs();render();return}
+ if(t.dataset.ack!==undefined){const b=document.getElementById('beginbtn');if(b)b.disabled=!t.checked;return}
+ if(t.dataset.qa!==undefined){const ci=curAtt();if(!ci||ci.att.status!=='in_progress')return;const i=+t.dataset.qa,j=+t.dataset.qj,q=ci.a.qs[i];let v=ci.att.answers[i]||[];if(q.k==='mc')v=[j];else{v=v.slice();const p=v.indexOf(j);if(t.checked&&p<0)v.push(j);if(!t.checked&&p>=0)v.splice(p,1)}ci.att.answers[i]=v;stamp(ci.att);return}
+ if(t.dataset.qf!==undefined){const ci=curAtt();if(!ci||ci.att.status!=='in_progress')return;const f=t.files[0];if(!f)return;const x='.'+f.name.split('.').pop().toLowerCase(),er=document.getElementById('qf_e');if(!['.pdf','.zip'].includes(x)){er.textContent='Only PDF or ZIP files are accepted.';return}if(f.size>20971520){er.textContent='The file is larger than 20 MB.';return}ci.att.answers[+t.dataset.qf]={name:f.name,size:f.size};stamp(ci.att);render();return}
+ if(t.dataset.gtask!==undefined){const c=portalCand(),g=D.groups.find(g=>g.members.some(m=>m.cid===c.id));if(g){g.tasks[+t.dataset.gtask].d=t.checked?1:0;render()}return}
+ if(t.dataset.up){const f=t.files[0];if(f)handleUpload(t.dataset.up,f);return}
+ if(t.id==='imp_file'){const f=t.files[0];if(!f)return;const er=document.getElementById('imp_err');if(!/\.(csv|json|txt)$/i.test(f.name)){er.textContent='Use a .csv or .json file. Save Excel files as CSV first.';return}if(f.size>1048576){er.textContent='The file is larger than 1 MB.';return}er.textContent='';const r=new FileReader();r.onload=()=>{imp.text=String(r.result);imp.name=f.name;const ta=document.getElementById('imp_text');if(ta)ta.value=imp.text;const nm=document.getElementById('imp_name');if(nm)nm.textContent=f.name+' loaded. Press Check file.'};r.onerror=()=>{er.textContent='The file could not be read.'};r.readAsText(f);return}
+ if(t.id==='b_files'){const ok=['.pdf','.docx','.xlsx','.csv','.zip','.png','.jpg','.txt'],names=[];let m='';[...t.files].forEach(f=>{const x='.'+f.name.split('.').pop().toLowerCase();if(!ok.includes(x))m='Not allowed: '+f.name;else if(f.size>10485760)m=f.name+' is larger than 10 MB';else names.push(f.name)});state.draft.files=(state.draft.files||[]).concat(names);render();if(m)setErr('b_files',m)}
+});
+document.addEventListener('dragover',e=>{if(e.target.closest&&e.target.closest('[data-drop]'))e.preventDefault()});
+document.addEventListener('drop',e=>{const z=e.target.closest&&e.target.closest('[data-drop]');if(!z)return;e.preventDefault();const f=e.dataTransfer&&e.dataTransfer.files[0];if(f)handleUpload(z.dataset.drop,f)});
+
+render();
+</script>
