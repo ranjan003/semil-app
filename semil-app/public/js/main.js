@@ -12,10 +12,9 @@
         ev.preventDefault();
         err.style.display = 'none';
         try {
-          if (NT.auth && NT.auth.login && typeof firebase !== 'undefined' && firebase.auth) {
-            await NT.auth.login(email.value.trim(), pw.value);
-          } else {
-            await api.post('/api/auth/login', { email: email.value.trim(), password: pw.value });
+          const res = await api.post('/api/auth/login', { email: email.value.trim(), password: pw.value });
+          if (res && res.token) {
+            document.cookie = `__session=${res.token}; path=/; max-age=604800; SameSite=Lax`;
           }
           start();
         } catch (e) {
