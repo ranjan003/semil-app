@@ -1,0 +1,86 @@
+# Semil Talent Discovery — Local Development Stack
+# Simplified: App + PostgreSQL + Redis only (no MinIO/Nginx needed locally)
+#
+# Usage:
+#   docker compose -f docker-compose.local.yml up -d --build
+#   docker compose -f docker-compose.local.yml exec app node src/migrate.js
+#   docker compose -f docker-compose.local.yml exec app node scripts/seed.js
+
+services:
+  # ── Application ──
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: semil-app
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgres://semil:semil_secret@postgres:5432/semil
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - semil-net
+
+  # ── PostgreSQL 16 ──
+  postgres:
+    image: postgres:16-alpine
+    container_name: semil-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: semil
+      POSTGRES_USER: semil
+      POSTGRES_PASSWORD: semil_secret
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U semil -d semil"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - semil-net
+
+  # ── Redis 7 ──
+  redis:
+    image: redis:7-alpine
+    container_name: semil-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - semil-net
+
+volumes:
+  pg_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  semil-net:
+    driver: bridge

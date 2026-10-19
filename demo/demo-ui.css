@@ -1,0 +1,8 @@
+#demo-bar{display:flex;gap:.75rem;align-items:center;justify-content:center;flex-wrap:wrap;background:#fff7e0;color:#5a4300;border-bottom:1px solid #f0d98a;padding:.4rem 1rem;font-size:.85rem;text-align:center}
+#demo-bar button{font:inherit;padding:.15rem .6rem;border:1px solid #c9a63c;background:#fff;border-radius:6px;cursor:pointer;color:#5a4300}
+.demo-quick{margin-top:1.25rem;border-top:1px solid #e3e6ec;padding-top:1rem}
+.demo-quick h3{font-size:.95rem;margin:0 0 .5rem}
+.demo-quick .qk{display:flex;flex-wrap:wrap;gap:.4rem}
+.demo-quick button{font:inherit;font-size:.85rem;padding:.35rem .7rem;border:1px solid #c6ccd8;background:#fff;border-radius:8px;cursor:pointer}
+.demo-quick button:hover{background:#f1f4f9}
+.demo-quick p{font-size:.8rem;color:#5b6577;margin:.5rem 0 0}

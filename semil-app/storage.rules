@@ -1,0 +1,28 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function role() {
+      return request.auth.token.role;
+    }
+    function isHrAdmin() {
+      return isSignedIn() && (role() == 'hr_admin' || role() == 'super_admin');
+    }
+
+    // Documents: resumes, photos, submissions, presentations
+    match /documents/{candidateId}/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin() || (isSignedIn() && request.auth.token.candidateId == candidateId);
+    }
+
+    // Question bank attachments
+    match /qbank/{allPaths=**} {
+      allow read: if isSignedIn();
+      allow write: if isHrAdmin();
+    }
+  }
+}

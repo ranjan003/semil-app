@@ -1,0 +1,29 @@
+question_id,question_text,question_type,option_a,option_b,option_c,option_d,correct_answer,explanation,difficulty,job_role,round,topic,marks,negative_marks,status
+,"Aptitude easy question 1: pick the right option",mcq,Alpha 1,Bravo 1,Charlie 1,Delta 1,B,"Because B is right",easy,ALL,1,Aptitude,2,0.5,active
+,"Aptitude easy question 2: pick the right option",mcq,Alpha 2,Bravo 2,Charlie 2,Delta 2,C,"Because C is right",easy,ALL,1,Aptitude,2,0.5,active
+,"Aptitude easy question 3: pick the right option",mcq,Alpha 3,Bravo 3,Charlie 3,Delta 3,D,"Because D is right",easy,ALL,1,Aptitude,2,0.5,active
+,"Aptitude easy question 4: pick the right option",mcq,Alpha 4,Bravo 4,Charlie 4,Delta 4,A,"Because A is right",easy,ALL,1,Aptitude,2,0.5,active
+,"Aptitude medium question 1: pick the right option",mcq,Alpha 5,Bravo 5,Charlie 5,Delta 5,B,"Because B is right",medium,ALL,1,Aptitude,2,0.5,active
+,"Aptitude medium question 2: pick the right option",mcq,Alpha 6,Bravo 6,Charlie 6,Delta 6,C,"Because C is right",medium,ALL,1,Aptitude,2,0.5,active
+,"Aptitude medium question 3: pick the right option",mcq,Alpha 7,Bravo 7,Charlie 7,Delta 7,D,"Because D is right",medium,ALL,1,Aptitude,2,0.5,active
+,"Aptitude medium question 4: pick the right option",mcq,Alpha 8,Bravo 8,Charlie 8,Delta 8,A,"Because A is right",medium,ALL,1,Aptitude,2,0.5,active
+,"Aptitude hard question 1: pick the right option",mcq,Alpha 9,Bravo 9,Charlie 9,Delta 9,B,"Because B is right",hard,ALL,1,Aptitude,2,0.5,active
+,"Aptitude hard question 2: pick the right option",mcq,Alpha 10,Bravo 10,Charlie 10,Delta 10,C,"Because C is right",hard,ALL,1,Aptitude,2,0.5,active
+,"Aptitude hard question 3: pick the right option",mcq,Alpha 11,Bravo 11,Charlie 11,Delta 11,D,"Because D is right",hard,ALL,1,Aptitude,2,0.5,active
+,"Aptitude hard question 4: pick the right option",mcq,Alpha 12,Bravo 12,Charlie 12,Delta 12,A,"Because A is right",hard,ALL,1,Aptitude,2,0.5,active
+,"Logic easy question 1: pick the right option",mcq,Alpha 13,Bravo 13,Charlie 13,Delta 13,B,"Because B is right",easy,ALL,1,Logic,2,0.5,active
+,"Logic easy question 2: pick the right option",mcq,Alpha 14,Bravo 14,Charlie 14,Delta 14,C,"Because C is right",easy,ALL,1,Logic,2,0.5,active
+,"Logic easy question 3: pick the right option",mcq,Alpha 15,Bravo 15,Charlie 15,Delta 15,D,"Because D is right",easy,ALL,1,Logic,2,0.5,active
+,"Logic easy question 4: pick the right option",mcq,Alpha 16,Bravo 16,Charlie 16,Delta 16,A,"Because A is right",easy,ALL,1,Logic,2,0.5,active
+,"Logic medium question 1: pick the right option",mcq,Alpha 17,Bravo 17,Charlie 17,Delta 17,B,"Because B is right",medium,ALL,1,Logic,2,0.5,active
+,"Logic medium question 2: pick the right option",mcq,Alpha 18,Bravo 18,Charlie 18,Delta 18,C,"Because C is right",medium,ALL,1,Logic,2,0.5,active
+,"Logic medium question 3: pick the right option",mcq,Alpha 19,Bravo 19,Charlie 19,Delta 19,D,"Because D is right",medium,ALL,1,Logic,2,0.5,active
+,"Logic medium question 4: pick the right option",mcq,Alpha 20,Bravo 20,Charlie 20,Delta 20,A,"Because A is right",medium,ALL,1,Logic,2,0.5,active
+,"Logic hard question 1: pick the right option",mcq,Alpha 21,Bravo 21,Charlie 21,Delta 21,B,"Because B is right",hard,ALL,1,Logic,2,0.5,active
+,"Logic hard question 2: pick the right option",mcq,Alpha 22,Bravo 22,Charlie 22,Delta 22,C,"Because C is right",hard,ALL,1,Logic,2,0.5,active
+,"Logic hard question 3: pick the right option",mcq,Alpha 23,Bravo 23,Charlie 23,Delta 23,D,"Because D is right",hard,ALL,1,Logic,2,0.5,active
+,"Logic hard question 4: pick the right option",mcq,Alpha 24,Bravo 24,Charlie 24,Delta 24,A,"Because A is right",hard,ALL,1,Logic,2,0.5,active
+,"Written question 1: describe your approach",descriptive,,,,,"Look for structure",,easy,ALL,1,Written,5,,active
+,"Written question 2: describe your approach",descriptive,,,,,"Look for structure",,easy,ALL,1,Written,5,,active
+,"Written question 3: describe your approach",descriptive,,,,,"Look for structure",,easy,ALL,1,Written,5,,active
+,"Bad row with no answer",mcq,x,y,,,,,easy,ALL,1,Aptitude,1,0,
