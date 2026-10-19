@@ -10,6 +10,7 @@
   const defaultFirebaseConfig = {
     apiKey: window.FIREBASE_API_KEY || "AIzaSyCdRMtDEgohaX74lylHfH0PrqDewTfR3Xw",
     authDomain: window.FIREBASE_AUTH_DOMAIN || "semil-a9cf1.firebaseapp.com",
+    databaseURL: window.FIREBASE_DATABASE_URL || "https://semil-a9cf1-default-rtdb.asia-southeast1.firebasedatabase.app",
     projectId: window.FIREBASE_PROJECT_ID || "semil-a9cf1",
     storageBucket: window.FIREBASE_STORAGE_BUCKET || "semil-a9cf1.firebasestorage.app",
     messagingSenderId: "124354464493",

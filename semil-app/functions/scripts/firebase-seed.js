@@ -14,6 +14,8 @@ const { FieldValue } = require('firebase-admin/firestore');
 if (!admin.apps.length) {
   admin.initializeApp({
     projectId: process.env.GCLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID || 'semil-a9cf1',
+    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'semil-a9cf1.firebasestorage.app',
+    databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://semil-a9cf1-default-rtdb.asia-southeast1.firebasedatabase.app',
   });
 }
 
