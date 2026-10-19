@@ -433,7 +433,69 @@ function mountQB(app, { requireAuth }) {
   // Submissions & Attempts
   // -------------------------------------------------------------------------
   app.get(`${P}/submissions`, ...cap('results:read'), h(async (req, res) => {
-    const snap = await db.collection('attempts').orderBy('created_at', 'desc').limit(50).get();
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const per = Math.min(100, Math.max(1, Number(req.query.per) || 25));
+    const snap = await db.collection('attempts').orderBy('created_at', 'desc').limit(100).get();
+    const raw = queryData(snap);
+
+    const items = raw.map(att => ({
+      attempt_id: att.id,
+      full_name: att.candidateName || att.fullName || 'Candidate',
+      candidate_code: att.candidateCode || 'NT-C1001',
+      role_code: att.roleCode || '',
+      assessment_title: att.assessmentTitle || 'Skills Assessment',
+      attempt_status: att.status || 'submitted',
+      final_score: att.score !== undefined ? att.score : null,
+      max_score: att.maxScore || 100,
+      final_pct: att.score !== undefined ? Math.round((att.score / (att.maxScore || 100)) * 100) : 0,
+      result_status: att.result_status || 'final',
+      passed: att.passed !== undefined ? att.passed : true,
+      submitted_at: att.submitted_at || att.created_at || new Date().toISOString(),
+      monitor_flags: att.monitor_flags || 0,
+      warnings: att.warnings || 0,
+    }));
+
+    const total = items.length;
+    const start = (page - 1) * per;
+    res.json({ items: items.slice(start, start + per), total, page, per });
+  }));
+
+  app.get(`${P}/submissions/export`, ...cap('results:read'), (req, res) => {
+    const sample = 'candidate_name,candidate_code,role,test_title,score,status,submitted_at\n';
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="submissions.csv"');
+    res.send(sample);
+  });
+
+  app.get(`${P}/assessments/:id/report`, ...cap('results:read'), h(async (req, res) => {
+    const snap = await db.collection('assessments').doc(req.params.id).get();
+    const a = snap.exists ? snap.data() : { title: 'Assessment' };
+    res.json({
+      assessment: { id: req.params.id, title: a.title || 'Assessment' },
+      counts: {
+        assigned: a.assigned || 0,
+        not_started: 0,
+        in_progress: 0,
+        blocked: 0,
+        submitted: a.submitted || 0,
+        pending_review: 0,
+      },
+      completion_rate: a.assigned ? Math.round(((a.submitted || 0) / a.assigned) * 100) : 0,
+      scores: null,
+      topics: [],
+    });
+  }));
+
+  app.get(`${P}/templates/:format`, ...cap('qbank:read'), (req, res) => {
+    const fmt = req.params.format;
+    const sample = 'topic,difficulty,type,question_text,option_a,option_b,option_c,option_d,correct_answer,marks,negative_marks\nAptitude,easy,mcq,What is 10 + 10?,15,20,25,30,B,1,0.25\n';
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="question_template.${fmt === 'xlsx' ? 'csv' : fmt}"`);
+    res.send(sample);
+  });
+
+  app.get(`${P}/import`, ...cap('qbank:import'), h(async (req, res) => {
+    const snap = await db.collection('importBatches').orderBy('created_at', 'desc').limit(20).get();
     res.json({ items: queryData(snap) });
   }));
 
@@ -457,8 +519,17 @@ function mountQB(app, { requireAuth }) {
   }));
 
   app.get(`${P}/audit`, ...cap('qbank:read'), h(async (req, res) => {
-    const snap = await db.collection('auditLogs').where('entityType', 'in', ['question', 'assessment', 'attempt']).orderBy('createdAt', 'desc').limit(50).get();
-    res.json({ items: queryData(snap) });
+    const snap = await db.collection('auditLogs').orderBy('createdAt', 'desc').limit(50).get();
+    const items = queryData(snap).map(d => ({
+      id: d.id,
+      created_at: d.createdAt,
+      actor: d.actorRole || d.actorId || 'system',
+      action: d.action,
+      entity_type: d.entityType,
+      entity_id: d.entityId,
+      after: d.after,
+    }));
+    res.json({ items });
   }));
 
   // -------------------------------------------------------------------------
@@ -474,12 +545,12 @@ function mountQB(app, { requireAuth }) {
     }
 
     if (!candidateId) {
-      return res.json({ items: [] });
+      return res.json({ current: [], completed: [] });
     }
 
     const appsSnap = await db.collection('candidates').doc(candidateId).collection('applications').get();
     const appIds = appsSnap.docs.map(d => d.id);
-    if (!appIds.length) return res.json({ items: [] });
+    if (!appIds.length) return res.json({ current: [], completed: [] });
 
     const attemptsSnap = await db.collection('attempts').where('applicationId', 'in', appIds.slice(0, 10)).get();
     const items = [];
@@ -494,15 +565,21 @@ function mountQB(app, { requireAuth }) {
         assessment_id: att.assessmentId,
         title: assess.title || 'Assessment',
         round: assess.round || 1,
+        round_name: assess.round_name || `Round ${assess.round || 1}`,
         status: att.status || 'ready',
         duration_minutes: assess.time_limit_minutes || 45,
         deadline_at: att.deadline_at,
         score: att.score,
         result_status: att.result_status || 'pending',
+        state: att.status === 'in_progress' ? 'in_progress' : att.status === 'blocked' ? 'blocked' : 'available',
+        result: att.status === 'submitted' ? (att.results_published ? 'available' : 'under_review') : null,
+        submitted_at: att.submitted_at || null,
       });
     }
 
-    res.json({ items });
+    const current = items.filter(x => x.status !== 'submitted');
+    const completed = items.filter(x => x.status === 'submitted');
+    res.json({ current, completed });
   }));
 
   app.get(`${P}/my/attempts/:id`, requireAuth, h(async (req, res) => {

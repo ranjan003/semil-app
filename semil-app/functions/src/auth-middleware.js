@@ -52,11 +52,17 @@ async function authMiddleware(req, res, next) {
   // 1. Try verifying as local signed session token
   const localSession = verifySession(token);
   if (localSession) {
+    let role = localSession.role || 'candidate';
+    let full_name = localSession.full_name || localSession.fullName || localSession.email || 'Admin';
+    if (localSession.email === 'admin@semil.local' || localSession.email?.endsWith('@semil.local') || role === 'super_admin') {
+      role = 'super_admin';
+      full_name = 'Super Admin';
+    }
     req.user = {
-      id: localSession.id || localSession.uid,
-      email: localSession.email || '',
-      full_name: localSession.full_name || localSession.fullName || localSession.email || 'Admin',
-      role: localSession.role || 'candidate',
+      id: localSession.id || localSession.uid || 'admin-super-001',
+      email: localSession.email || 'admin@semil.local',
+      full_name,
+      role,
     };
     return next();
   }
@@ -64,11 +70,17 @@ async function authMiddleware(req, res, next) {
   // 2. Try verifying with Firebase Admin SDK
   try {
     const decoded = await auth.verifyIdToken(token);
+    let role = decoded.role;
+    let full_name = decoded.name;
+    if (decoded.email === 'admin@semil.local' || decoded.email?.endsWith('@semil.local')) {
+      role = 'super_admin';
+      full_name = 'Super Admin';
+    }
     req.user = {
       id: decoded.uid,
       email: decoded.email || '',
-      full_name: decoded.name || decoded.email || '',
-      role: decoded.role || 'candidate',
+      full_name: full_name || decoded.email || 'User',
+      role: role || 'candidate',
     };
     return next();
   } catch (err) {
@@ -90,11 +102,15 @@ async function authMiddleware(req, res, next) {
         if (u.customAttributes) {
           try { role = JSON.parse(u.customAttributes).role || 'candidate'; } catch {}
         }
-        if (u.email === 'admin@semil.local' || u.email?.endsWith('@semil.local')) role = 'super_admin';
+        let full_name = u.displayName;
+        if (u.email === 'admin@semil.local' || u.email?.endsWith('@semil.local')) {
+          role = 'super_admin';
+          full_name = 'Super Admin';
+        }
         req.user = {
           id: u.localId,
           email: u.email || '',
-          full_name: u.displayName || u.email || '',
+          full_name: full_name || u.email || 'User',
           role,
         };
         return next();

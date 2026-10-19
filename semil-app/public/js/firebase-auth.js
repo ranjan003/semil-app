@@ -51,7 +51,7 @@
         }
       } else {
         currentToken = null;
-        document.cookie = '__session=; path=/; max-age=0; SameSite=Lax';
+        // Do not clear __session cookie here so that server-signed sessions persist across reloads
       }
     });
   }

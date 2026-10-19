@@ -1,8 +1,27 @@
 'use strict';
 // Firestore database helpers — provides utility functions for common patterns
 // that were previously done with SQL queries.
-const { db } = require('./firebase');
-const { FieldValue, Timestamp } = require('firebase-admin/firestore');
+let db, FieldValue, Timestamp;
+
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS || process.env.FIREBASE_SERVICE_ACCOUNT) {
+  try {
+    const fb = require('./firebase');
+    const fstore = require('firebase-admin/firestore');
+    db = fb.db;
+    FieldValue = fstore.FieldValue;
+    Timestamp = fstore.Timestamp;
+  } catch (err) {
+    const rtdb = require('./rtdb-adapter');
+    db = rtdb.db;
+    FieldValue = rtdb.FieldValue;
+    Timestamp = rtdb.Timestamp;
+  }
+} else {
+  const rtdb = require('./rtdb-adapter');
+  db = rtdb.db;
+  FieldValue = rtdb.FieldValue;
+  Timestamp = rtdb.Timestamp;
+}
 
 // ── Auto-increment counters (replaces PostgreSQL sequences) ──
 async function nextCounter(counterName, prefix = '', padLen = 4) {
