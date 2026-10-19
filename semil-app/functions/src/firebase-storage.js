@@ -2,7 +2,7 @@
 // Firebase Storage adapter — replaces LocalPrivateStorage and S3 storage.
 const crypto = require('node:crypto');
 const path = require('node:path');
-const { storage } = require('./firebase');
+const { storage, hasAdminCredentials } = require('./firebase');
 
 const LIMITS = {
   resume: { max: 5 * 1024 * 1024, ext: ['.pdf', '.docx'] },
@@ -59,6 +59,11 @@ class FirebaseStorage {
   }
 
   async put({ kind, ownerId, ext }, buf) {
+    if (!hasAdminCredentials) {
+      const err = new Error('File storage needs a Firebase service account. Add FIREBASE_SERVICE_ACCOUNT in Vercel.');
+      err.code = 'firebase_not_configured';
+      throw err;
+    }
     const key = `documents/${ownerId}/${kind}/${crypto.randomUUID()}${ext}`;
     const file = this.bucket.file(key);
     await file.save(buf, {
@@ -85,6 +90,11 @@ class FirebaseStorage {
   }
 
   async getSignedUrl(key, ttlSeconds = 600) {
+    if (!hasAdminCredentials) {
+      const err = new Error('File storage needs a Firebase service account. Add FIREBASE_SERVICE_ACCOUNT in Vercel.');
+      err.code = 'firebase_not_configured';
+      throw err;
+    }
     const file = this.bucket.file(key);
     const [url] = await file.getSignedUrl({
       action: 'read',

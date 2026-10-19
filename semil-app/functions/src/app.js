@@ -6,13 +6,13 @@ const multer = require('multer');
 const crypto = require('node:crypto');
 const { z } = require('zod');
 
-const { db, FieldValue, nextCandidateCode, audit, docData, queryData, now } = require('./firestore-db');
+const { db, FieldValue, nextCandidateCode, audit, docData, queryData, now, backend, runWithToken, getUserProfile, ensureUserProfile, isAdminEmail, adminEmails, sortBy, toIso } = require('./firestore-db');
 const perms = require('./permissions');
 const scoring = require('./scoring');
-const { authMiddleware, requireAuth, signSession } = require('./auth-middleware');
+const { authMiddleware, requireAuth } = require('./auth-middleware');
 const { FirebaseStorage, validateUpload } = require('./firebase-storage');
 const proctor = require('./proctoring');
-const { auth } = require('./firebase');
+const firebaseConfig = require('./firebase');
 const { mountQB } = require('./qb-firestore');
 
 const STAGES = ['applied', 'round_1', 'round_2', 'round_3', 'round_4', 'round_5', 'selected', 'offer_sent', 'offer_accepted', 'joined', 'rejected', 'on_hold'];
@@ -47,107 +47,179 @@ function createApp() {
   });
 
   // ── Firebase Auth middleware ──
-  app.use(authMiddleware);
+  app.use('/api', authMiddleware);
+  // Carry the verified user's ID token through the request so the legacy RTDB adapter
+  // can authenticate against security rules instead of requiring a public database.
+  app.use('/api', (req, res, next) => runWithToken(req.authToken, next));
+
+  // Public Firebase web configuration (safe to expose; contains no private key).
+  app.get('/config.js', (req, res) => {
+    const cfg = {
+      apiKey: process.env.FIREBASE_API_KEY || 'AIzaSyCdRMtDEgohaX74lylHfH0PrqDewTfR3Xw',
+      authDomain: process.env.FIREBASE_AUTH_DOMAIN || 'semil-a9cf1.firebaseapp.com',
+      databaseURL: process.env.FIREBASE_DATABASE_URL || 'https://semil-a9cf1-default-rtdb.asia-southeast1.firebasedatabase.app',
+      projectId: process.env.FIREBASE_PROJECT_ID || 'semil-a9cf1',
+      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || 'semil-a9cf1.firebasestorage.app',
+      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '124354464493',
+      appId: process.env.FIREBASE_APP_ID || '1:124354464493:web:06fc3d812bc641513c9ae4',
+      measurementId: process.env.FIREBASE_MEASUREMENT_ID || 'G-TZYB5VGRVH',
+    };
+    res.set('Cache-Control', 'public, max-age=300');
+    res.type('application/javascript').send(`/* generated from server environment */\nwindow.FIREBASE_CONFIG = ${JSON.stringify(cfg)};\n`);
+  });
 
   // ── In-memory rate limiter (Cloud Functions are stateless, so this resets per instance) ──
   const _memLimiter = { _m: new Map(), limited(k) { const n = Date.now(); const a = (this._m.get(k)||[]).filter(t=>n-t<15*60*1000); this._m.set(k,a); return a.length>=10; }, note(k) { this._m.set(k,[...(this._m.get(k)||[]),Date.now()]); } };
   async function limited(key) { return _memLimiter.limited(key); }
   async function noteAttempt(key) { _memLimiter.note(key); }
 
-  app.get('/healthz', (req, res) => res.json({ ok: true }));
+  app.get('/healthz', (req, res) => res.json({ ok: true, dataBackend: backend }));
+
+  app.get('/api/health/firebase', (req, res) => {
+    res.json({
+      ok: true,
+      projectId: firebaseConfig.projectId,
+      dataBackend: backend,
+      firestoreConfigured: firebaseConfig.hasFirestore,
+      serviceAccountConfigured: firebaseConfig.hasAdminCredentials,
+      authApiKeyConfigured: !!(process.env.FIREBASE_API_KEY || process.env.GOOGLE_API_KEY),
+      adminEmailOverrides: adminEmails().length,
+      storageBucket: firebaseConfig.storageBucket,
+      timestamp: new Date().toISOString(),
+    });
+  });
 
   // =====================================================================================
-  // Auth — Login, Session verification, and Role management
+  // Auth — Sign in, sign up profile, session verification and role management
   // =====================================================================================
   app.post('/api/auth/login', h(async (req, res) => {
     const { email, password } = z.object({
-      email: z.string().trim().min(3),
-      password: z.string().min(1),
+      email: z.string().trim().email().max(200),
+      password: z.string().min(1).max(128),
     }).parse(req.body);
 
     const normEmail = email.toLowerCase().trim();
-
-    // 1. Super Admin instant authentication
-    if (normEmail === 'admin@semil.local' && password === 'SemilPass2026!') {
-      const user = {
-        id: 'admin-super-001',
-        email: 'admin@semil.local',
-        full_name: 'Super Admin',
-        role: 'super_admin',
-      };
-      const token = signSession(user);
-      res.cookie('__session', token, {
-        path: '/',
-        httpOnly: false,
-        sameSite: 'lax',
-        maxAge: 7 * 24 * 3600 * 1000,
-      });
-      return res.json({ ok: true, token, user });
+    const limitKey = `login:${normEmail}:${req.ip || 'unknown'}`;
+    if (await limited(limitKey)) {
+      return res.status(429).json({ error: 'too_many_attempts', message: 'Too many attempts. Wait a few minutes and try again.' });
     }
 
-    // 2. Firebase / Identity Toolkit authentication
-    const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyCdRMtDEgohaX74lylHfH0PrqDewTfR3Xw';
+    const apiKey = process.env.FIREBASE_API_KEY || process.env.GOOGLE_API_KEY || 'AIzaSyCdRMtDEgohaX74lylHfH0PrqDewTfR3Xw';
+    if (!apiKey) {
+      return res.status(503).json({ error: 'firebase_not_configured', message: 'Firebase Authentication is not configured on the server.' });
+    }
+
+    let data = null;
     try {
-      const resp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`, {
+      const resp = await fetch(`https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${encodeURIComponent(apiKey)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: normEmail, password, returnSecureToken: true }),
       });
-
-      const data = await resp.json();
-      if (resp.ok && data.idToken) {
-        let role = normEmail.endsWith('@semil.local') ? 'super_admin' : 'candidate';
-        try {
-          const uDoc = await db.collection('users').doc(data.localId).get();
-          if (uDoc.exists && uDoc.data().role) role = uDoc.data().role;
-        } catch {}
-
-        const user = {
-          id: data.localId,
-          email: data.email || normEmail,
-          full_name: data.displayName || data.email || normEmail,
-          role,
-        };
-
-        res.cookie('__session', data.idToken, {
-          path: '/',
-          httpOnly: false,
-          sameSite: 'lax',
-          maxAge: 3600 * 1000,
-        });
-
-        return res.json({ ok: true, token: data.idToken, user });
+      data = await resp.json().catch(() => null);
+      if (!resp.ok || !data || !data.idToken) {
+        await noteAttempt(limitKey);
+        const code = data && data.error && data.error.message;
+        const friendly = code === 'EMAIL_NOT_FOUND' || code === 'INVALID_PASSWORD' || code === 'INVALID_LOGIN_CREDENTIALS'
+          ? 'E-mail or password is not correct.'
+          : code === 'USER_DISABLED' ? 'This account has been disabled. Contact an administrator.'
+            : code === 'TOO_MANY_ATTEMPTS_TRY_LATER' ? 'Too many attempts. Wait a few minutes and try again.'
+              : 'Sign-in failed. Check your details and try again.';
+        return res.status(401).json({ error: 'invalid_credentials', message: friendly });
       }
     } catch (err) {
-      console.warn('Firebase signInWithPassword error:', err.message);
+      console.warn('[auth/login] Firebase request failed:', err.message);
+      return res.status(503).json({ error: 'auth_unavailable', message: 'Cannot reach Firebase Authentication. Try again shortly.' });
     }
 
-    return res.status(401).json({ error: 'invalid_credentials', message: 'E-mail or password is not correct.' });
+    const user = await runWithToken(data.idToken, async () => {
+      let profile = await getUserProfile(data.localId);
+      if (!profile) {
+        profile = await ensureUserProfile({ uid: data.localId, email: data.email || normEmail, fullName: data.displayName || '', role: 'candidate' });
+      }
+      if (profile && profile.isActive === false) return null;
+      const role = isAdminEmail(data.email || normEmail) ? 'super_admin' : (profile.role || 'candidate');
+      return {
+        id: data.localId,
+        uid: data.localId,
+        email: data.email || normEmail,
+        full_name: profile.full_name || profile.fullName || data.displayName || data.email || normEmail,
+        role,
+      };
+    });
+
+    if (!user) return res.status(403).json({ error: 'account_disabled', message: 'This account has been disabled. Contact an administrator.' });
+
+    res.cookie('__session', data.idToken, {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 55 * 60 * 1000,
+    });
+
+    return res.json({ ok: true, user });
+  }));
+
+  // Called by the browser right after createUserWithEmailAndPassword / Google sign-in.
+  // Idempotent: the document id is the Firebase UID, so repeated calls never duplicate a profile.
+  app.post('/api/auth/register', requireAuth, h(async (req, res) => {
+    const d = z.object({
+      fullName: z.string().trim().min(2).max(120).optional(),
+    }).parse(req.body || {});
+
+    let profile = await getUserProfile(req.user.id);
+    if (profile) {
+      // Only fill in a missing display name; never overwrite an existing profile or role.
+      if (d.fullName && (!profile.fullName || profile.fullName === profile.email || profile.fullName === 'User')) {
+        await db.collection('users').doc(req.user.id).update({ fullName: d.fullName, updatedAt: FieldValue.serverTimestamp() });
+        profile = await getUserProfile(req.user.id);
+      }
+      return res.json({ ok: true, created: false, user: { ...profile, id: req.user.id, full_name: profile.full_name || profile.fullName, role: isAdminEmail(req.user.email) ? 'super_admin' : profile.role } });
+    }
+
+    profile = await ensureUserProfile({
+      uid: req.user.id,
+      email: req.user.email,
+      fullName: d.fullName || req.user.full_name,
+      role: isAdminEmail(req.user.email) ? 'super_admin' : 'candidate',
+    });
+    await audit(req, 'user.register', 'user', req.user.id, null, { email: req.user.email, role: profile.role });
+    res.status(201).json({ ok: true, created: true, user: { ...profile, id: req.user.id, full_name: profile.full_name || profile.fullName, role: isAdminEmail(req.user.email) ? 'super_admin' : profile.role } });
   }));
 
   app.get('/api/me', requireAuth, (req, res) => res.json(req.user));
 
   app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('__session');
+    res.clearCookie('__session', { path: '/' });
     res.json({ ok: true });
   });
 
   // Register a new user with role (admin-only)
-  app.post('/api/auth/register', requireAuth, perms.requireCap('user:manage'), h(async (req, res) => {
+  // Firebase Admin user creation requires a service account. Use the Firebase Console when
+  // no service account is configured; the public sign-up flow above still works.
+  app.post('/api/users', requireAuth, perms.requireCap('user:manage'), h(async (req, res) => {
     const d = z.object({
       email: z.string().email().max(200),
-      password: z.string().min(10).max(128),
+      password: z.string().min(10).max(128).optional(),
       fullName: z.string().trim().min(2).max(120),
       role: z.enum(['hr_admin', 'technical_assessor', 'business_assessor', 'candidate']),
     }).parse(req.body);
 
-    const userRecord = await auth.createUser({
+    if (!firebaseConfig.hasFirestore) {
+      return res.status(503).json({
+        error: 'admin_sdk_not_configured',
+        message: 'Creating users from the app needs a Firebase service account. Add FIREBASE_SERVICE_ACCOUNT in Vercel, or create the user in the Firebase Console.',
+      });
+    }
+
+    const userRecord = await firebaseConfig.auth.createUser({
       email: d.email,
       password: d.password,
       displayName: d.fullName,
     });
 
-    await auth.setCustomUserClaims(userRecord.uid, { role: d.role });
+    await firebaseConfig.auth.setCustomUserClaims(userRecord.uid, { role: d.role });
 
     await db.collection('users').doc(userRecord.uid).set({
       email: d.email,
@@ -259,6 +331,31 @@ function createApp() {
     res.status(201).json(perms.candidateView(req.user, cand));
   }));
 
+  // Attach the candidate's current application so the Tests page can assign by
+  // application id and know which role/stage the candidate belongs to.
+  async function attachApplications(items, vacancyMap) {
+    return Promise.all(items.map(async c => {
+      let apps = [];
+      try {
+        apps = queryData(await db.collection('candidates').doc(c.id).collection('applications').get());
+      } catch { /* no applications yet */ }
+      const active = apps
+        .filter(a => a && a.stage !== 'rejected')
+        .sort((a, b) => String(b.createdAt || b.stageEnteredAt || '').localeCompare(String(a.createdAt || a.stageEnteredAt || '')))[0]
+        || apps[0] || null;
+      const vacancy = active && active.vacancyId ? vacancyMap[active.vacancyId] : null;
+      return {
+        ...c,
+        application_id: active ? active.id : null,
+        applicationId: active ? active.id : null,
+        stage: (active && active.stage) || c.stage || 'applied',
+        vacancyId: (active && active.vacancyId) || c.vacancyId || null,
+        role_code: c.roleCode || (vacancy && vacancy.roleCode) || c.role_code || null,
+        vacancy_title: vacancy ? vacancy.title : null,
+      };
+    }));
+  }
+
   app.get('/api/candidates', requireAuth, h(async (req, res) => {
     const staffAll = perms.can(req.user, 'candidate:read');
     if (!staffAll && !perms.can(req.user, 'candidate:read:assigned')) return res.status(403).json({ error: 'forbidden' });
@@ -271,20 +368,31 @@ function createApp() {
       per: z.coerce.number().int().min(1).max(100).default(25),
     }).parse(req.query);
 
-    let query = db.collection('candidates').where('deletedAt', '==', null);
+    // Fetch first, filter in memory. This keeps working when older Firestore documents
+    // do not have deletedAt/createdAt fields (an orderBy would silently drop them).
+    let query = db.collection('candidates');
     if (!staffAll) query = query.where('assessorId', '==', req.user.id);
-    query = query.orderBy('createdAt', 'desc').limit(q.per).offset((q.page - 1) * q.per);
-
     const snap = await query.get();
-    let items = queryData(snap);
+    let items = queryData(snap).filter(c => !c.deletedAt);
 
-    // Client-side text filter (Firestore doesn't support ILIKE)
+    const vacSnap = await db.collection('vacancies').get().catch(() => ({ docs: [] }));
+    const vacancyMap = Object.fromEntries(queryData(vacSnap).map(v => [v.id, v]));
+    items = await attachApplications(items, vacancyMap);
+
     if (q.q) {
       const search = q.q.toLowerCase();
-      items = items.filter(c => c.fullName.toLowerCase().includes(search) || c.candidateCode.toLowerCase().includes(search));
+      items = items.filter(c => String(c.fullName || '').toLowerCase().includes(search)
+        || String(c.candidateCode || c.candidate_code || '').toLowerCase().includes(search)
+        || String(c.email || '').toLowerCase().includes(search));
     }
+    if (q.stage) items = items.filter(c => c.stage === q.stage);
+    if (q.source) items = items.filter(c => c.source === q.source);
 
-    res.json({ items, page: q.page });
+    items = sortBy(items, 'createdAt', 'desc');
+    const total = items.length;
+    const start = (q.page - 1) * q.per;
+    const view = items.slice(start, start + q.per).map(c => perms.candidateView(req.user, c)).filter(Boolean);
+    res.json({ items: view, page: q.page, per: q.per, total });
   }));
 
   app.get('/api/candidates/:id', requireAuth, h(async (req, res) => {
@@ -298,8 +406,8 @@ function createApp() {
     const appsSnap = await db.collection('candidates').doc(id).collection('applications').get();
     const apps = queryData(appsSnap);
 
-    const docsSnap = await db.collection('candidates').doc(id).collection('documents').orderBy('createdAt', 'desc').get();
-    const docs = queryData(docsSnap);
+    const docsSnap = await db.collection('candidates').doc(id).collection('documents').get();
+    const docs = sortBy(queryData(docsSnap), 'createdAt', 'desc');
 
     res.json({ ...view, applications: apps, documents: docs });
   }));
@@ -406,8 +514,8 @@ function createApp() {
   });
 
   app.get('/api/vacancies', requireAuth, h(async (req, res) => {
-    const snap = await db.collection('vacancies').orderBy('createdAt', 'desc').get();
-    let items = queryData(snap);
+    const snap = await db.collection('vacancies').get();
+    let items = sortBy(queryData(snap), 'createdAt', 'desc');
 
     if (req.user.role === 'candidate') {
       items = items.filter(v => v.status === 'active').map(v => ({
@@ -542,18 +650,17 @@ function createApp() {
       submittedAt: d.status === 'submitted' ? FieldValue.serverTimestamp() : null,
     };
 
-    // Check for existing evaluation (upsert pattern)
-    const existing = await db.collection('candidates').doc(candidateId).collection('applications').doc(appId)
-      .collection('evaluations').where('round', '==', d.round).where('evaluatorId', '==', req.user.id).limit(1).get();
+    // Check for an existing evaluation (upsert pattern). Fetching the small
+    // sub-collection and filtering in memory avoids a Firestore composite index.
+    const evalCol = db.collection('candidates').doc(candidateId).collection('applications').doc(appId).collection('evaluations');
+    const existing = queryData(await evalCol.get()).find(e => Number(e.round) === d.round && e.evaluatorId === req.user.id);
 
     let evalId;
-    if (!existing.empty) {
-      evalId = existing.docs[0].id;
-      await db.collection('candidates').doc(candidateId).collection('applications').doc(appId)
-        .collection('evaluations').doc(evalId).update(evalData);
+    if (existing) {
+      evalId = existing.id;
+      await evalCol.doc(evalId).update(evalData);
     } else {
-      const ref = await db.collection('candidates').doc(candidateId).collection('applications').doc(appId)
-        .collection('evaluations').add(evalData);
+      const ref = await evalCol.add(evalData);
       evalId = ref.id;
     }
 
@@ -592,8 +699,8 @@ function createApp() {
   // Assessments
   // =====================================================================================
   app.get('/api/assessments', requireAuth, perms.requireCap('assessment:read'), h(async (req, res) => {
-    const snap = await db.collection('assessments').orderBy('createdAt', 'desc').get();
-    res.json(queryData(snap));
+    const snap = await db.collection('assessments').get();
+    res.json(sortBy(queryData(snap), 'createdAt', 'desc'));
   }));
 
   app.post('/api/assessments', requireAuth, perms.requireCap('assessment:assign'), h(async (req, res) => {
@@ -633,11 +740,11 @@ function createApp() {
     if (!perms.can(req.user, 'interview:write') && !perms.can(req.user, 'interview:read:own')) {
       return res.status(403).json({ error: 'forbidden' });
     }
-    let query = db.collection('interviews').orderBy('startsAt', 'asc');
+    let items = sortBy(queryData(await db.collection('interviews').get()), 'startsAt', 'asc');
     if (perms.can(req.user, 'interview:read:own') && !perms.can(req.user, 'interview:write')) {
-      query = query.where('interviewerId', '==', req.user.id);
+      items = items.filter(i => i.interviewerId === req.user.id);
     }
-    res.json(queryData(await query.get()));
+    res.json(items);
   }));
 
   app.post('/api/interviews', requireAuth, perms.requireCap('interview:write'), h(async (req, res) => {
@@ -694,18 +801,20 @@ function createApp() {
   // =====================================================================================
   app.get('/api/reports/dashboard', requireAuth, perms.requireCap('report:read'), h(async (req, res) => {
     const [candidatesSnap, vacanciesSnap] = await Promise.all([
-      db.collection('candidates').where('deletedAt', '==', null).get(),
+      db.collection('candidates').get(),
       db.collection('vacancies').get(),
     ]);
+    const candidates = queryData(candidatesSnap).filter(c => !c.deletedAt);
+    const vacancies = queryData(vacanciesSnap);
 
-    const totalCandidates = candidatesSnap.size;
-    const totalVacancies = vacanciesSnap.size;
-    const activeVacancies = vacanciesSnap.docs.filter(d => d.data().status === 'active').length;
+    const totalCandidates = candidates.length;
+    const totalVacancies = vacancies.length;
+    const activeVacancies = vacancies.filter(v => v.status === 'active').length;
 
     // Count by source
     const sourceMap = {};
-    candidatesSnap.docs.forEach(d => {
-      const s = d.data().source || 'Unknown';
+    candidates.forEach(c => {
+      const s = c.source || 'Unknown';
       sourceMap[s] = (sourceMap[s] || 0) + 1;
     });
 
@@ -721,16 +830,16 @@ function createApp() {
   // Colleges (lookup)
   // =====================================================================================
   app.get('/api/colleges', requireAuth, h(async (req, res) => {
-    const snap = await db.collection('colleges').orderBy('name').get();
-    res.json(queryData(snap));
+    const snap = await db.collection('colleges').get();
+    res.json(sortBy(queryData(snap), 'name', 'asc'));
   }));
 
   // =====================================================================================
   // Campaigns
   // =====================================================================================
   app.get('/api/campaigns', requireAuth, h(async (req, res) => {
-    const snap = await db.collection('campaigns').orderBy('createdAt', 'desc').get();
-    res.json(queryData(snap));
+    const snap = await db.collection('campaigns').get();
+    res.json(sortBy(queryData(snap), 'createdAt', 'desc'));
   }));
 
   app.post('/api/campaigns', requireAuth, perms.requireCap('campaign:write'), h(async (req, res) => {
@@ -754,12 +863,9 @@ function createApp() {
   // Notifications
   // =====================================================================================
   app.get('/api/notifications', requireAuth, h(async (req, res) => {
-    const snap = await db.collection('notifications')
-      .where('userId', '==', req.user.id)
-      .orderBy('createdAt', 'desc')
-      .limit(50)
-      .get();
-    res.json(queryData(snap));
+    const snap = await db.collection('notifications').get();
+    const items = sortBy(queryData(snap).filter(n => n.userId === req.user.id), 'createdAt', 'desc').slice(0, 50);
+    res.json(items);
   }));
 
   app.patch('/api/notifications/:id/read', requireAuth, h(async (req, res) => {
@@ -772,14 +878,15 @@ function createApp() {
   // =====================================================================================
   app.get('/api/audit-logs', requireAuth, perms.requireCap('config:write'), h(async (req, res) => {
     const q = z.object({ page: z.coerce.number().int().min(1).default(1), per: z.coerce.number().int().min(1).max(100).default(50) }).parse(req.query);
-    const snap = await db.collection('auditLogs').orderBy('createdAt', 'desc').limit(q.per).offset((q.page - 1) * q.per).get();
-    res.json({ items: queryData(snap), page: q.page });
+    const all = sortBy(queryData(await db.collection('auditLogs').get()), 'createdAt', 'desc');
+    const start = (q.page - 1) * q.per;
+    res.json({ items: all.slice(start, start + q.per), page: q.page });
   }));
 
   // =====================================================================================
   // Question Bank & Candidate Testing Engine
   // =====================================================================================
-  mountQB(app, { requireAuth });
+  mountQB(app, { requireAuth, upload });
 
   // Serve frontend index.html for any non-API GET request
   app.get('*', (req, res, next) => {
@@ -792,13 +899,28 @@ function createApp() {
   });
 
   // ── Error handling ──
-  app.use('/api', (req, res) => res.status(404).json({ error: 'not_found' }));
+  app.use('/api', (req, res) => res.status(404).json({ error: 'not_found', message: 'The requested API endpoint does not exist.' }));
   app.use((err, req, res, next) => {   // eslint-disable-line no-unused-vars
     if (err instanceof z.ZodError) return res.status(400).json({ error: 'validation_failed', fields: err.issues.map(i => ({ path: i.path.join('.'), message: i.message })) });
-    if (err && (err.status === 413 || err.type === 'entity.too.large')) return res.status(413).json({ error: 'payload_too_large' });
+    if (err && (err.status === 413 || err.type === 'entity.too.large')) return res.status(413).json({ error: 'payload_too_large', message: 'The request is too large.' });
     if (err && err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'invalid_file', message: 'File is too large.' });
-    console.error(err);
-    res.status(500).json({ error: 'server_error' });
+    if (err && (err.code === 'firebase_not_configured' || err.message === 'firebase_not_configured')) {
+      return res.status(503).json({
+        error: 'firebase_not_configured',
+        message: 'Firebase is not fully configured on the server. Add FIREBASE_SERVICE_ACCOUNT in Vercel, then redeploy.',
+      });
+    }
+    if (err && (err.code === 'permission_denied' || err.code === 7 || err.status === 403)) {
+      return res.status(403).json({ error: 'permission_denied', message: 'You do not have permission to perform this action.' });
+    }
+    if (err && (err.code === 'auth/id-token-expired' || err.code === 'auth/argument-error')) {
+      return res.status(401).json({ error: 'unauthenticated', message: 'Your session has expired. Please sign in again.' });
+    }
+    console.error('[api]', req.method, req.originalUrl, err && (err.stack || err.message) || err);
+    const message = process.env.NODE_ENV === 'production'
+      ? 'Something went wrong. Please try again.'
+      : (err && err.message) || 'Something went wrong.';
+    res.status(500).json({ error: 'server_error', message });
   });
 
   return app;

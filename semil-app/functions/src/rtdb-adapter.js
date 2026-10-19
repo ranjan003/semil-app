@@ -4,11 +4,25 @@
 // Works seamlessly in serverless environments (Vercel) without Google Cloud Service Account files.
 
 const crypto = require('node:crypto');
+const { AsyncLocalStorage } = require('node:async_hooks');
 
 const RTDB_URL = (
   process.env.FIREBASE_DATABASE_URL ||
   'https://semil-a9cf1-default-rtdb.asia-southeast1.firebasedatabase.app'
 ).replace(/\/+$/, '');
+
+// The signed-in user's Firebase ID token is carried per request so the legacy RTDB
+// fallback can use security rules instead of leaving the database public.
+const tokenStore = new AsyncLocalStorage();
+
+function runWithToken(token, fn) {
+  return tokenStore.run({ token: token || null }, fn);
+}
+
+function currentToken() {
+  const store = tokenStore.getStore();
+  return store && store.token ? store.token : null;
+}
 
 // Short in-memory cache to keep serverless functions fast
 const cache = new Map();
@@ -26,17 +40,20 @@ function setCached(key, data) {
 
 function invalidateCache(prefix) {
   for (const k of cache.keys()) {
-    if (k.startsWith(prefix) || prefix.startsWith(k)) cache.delete(k);
+    if (k === prefix || k.startsWith(prefix) || k.endsWith(':' + prefix) || k.includes(':' + prefix + '/') || prefix.startsWith(k)) cache.delete(k);
   }
 }
 
 async function rtdbFetch(path, options = {}) {
   const cleanPath = path.replace(/^\/+/, '').replace(/\/+$/, '');
-  const url = `${RTDB_URL}/${cleanPath}.json`;
+  const token = currentToken();
+  const authQuery = token ? `?auth=${encodeURIComponent(token)}` : '';
+  const url = `${RTDB_URL}/${cleanPath}.json${authQuery}`;
 
   const method = options.method || 'GET';
+  const cacheKey = `${token ? crypto.createHash('sha1').update(token).digest('hex').slice(0, 12) : 'anon'}:${cleanPath}`;
   if (method === 'GET') {
-    const cached = getCached(cleanPath);
+    const cached = getCached(cacheKey);
     if (cached !== null) return cached;
   }
 
@@ -48,12 +65,15 @@ async function rtdbFetch(path, options = {}) {
 
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`RTDB request failed [${res.status}]: ${errText}`);
+    const err = new Error(`RTDB request failed [${res.status}]: ${errText}`);
+    err.status = res.status;
+    err.code = res.status === 401 || res.status === 403 ? 'permission_denied' : 'rtdb_error';
+    throw err;
   }
 
   const data = await res.json();
   if (method === 'GET') {
-    setCached(cleanPath, data);
+    setCached(cacheKey, data);
   } else {
     invalidateCache(cleanPath.split('/')[0]);
   }
@@ -346,4 +366,5 @@ module.exports = {
   FieldValue,
   Timestamp,
   RTDBDatabase,
+  runWithToken,
 };

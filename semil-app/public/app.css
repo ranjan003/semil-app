@@ -98,3 +98,21 @@ th{border-bottom:2px solid var(--line)}
 .progress i{background:linear-gradient(90deg,var(--accent),#2bb3b8)}
 .dz{background:#f8fbfc;border-color:#a9c3cc}
 @media(max-width:820px){.tabs{top:50px}}
+
+/* ---- account access: sign in / sign up ---- */
+.auth-tabs{display:flex;gap:.35rem;background:#eef3f8;border:1px solid var(--line);border-radius:12px;padding:.25rem;margin-bottom:1rem}
+.auth-tab{flex:1;border:0;background:transparent;border-radius:9px;padding:.5rem .6rem;cursor:pointer;color:var(--muted);font-weight:500;transition:background .15s,color .15s}
+.auth-tab:hover{color:var(--brand)}
+.auth-tab.active{background:#fff;color:var(--brand);font-weight:600;box-shadow:0 1px 2px rgba(16,24,40,.12)}
+.auth-submit{width:100%;justify-content:center;margin-top:.15rem}
+.google-btn{width:100%;justify-content:center;margin-top:.15rem}
+.g-mark{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#fff;color:#4285f4;font-weight:700;font-size:.82rem;border:1px solid var(--line)}
+.auth-divider{display:flex;align-items:center;gap:.7rem;color:var(--muted);font-size:.8rem;margin:.9rem 0 .2rem}
+.auth-divider::before,.auth-divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.auth-switch{text-align:center;margin:.9rem 0 0;font-size:.88rem;color:var(--muted)}
+.auth-links{display:flex;justify-content:flex-end;margin-top:.35rem}
+.linklike{border:0;background:none;color:var(--brand-2);cursor:pointer;padding:.1rem .2rem;font:inherit;text-decoration:underline;text-underline-offset:2px}
+.linklike:hover{color:var(--accent)}
+.login .banner{margin:.5rem 0}
+.login .field{margin-bottom:.8rem}
+@media(max-width:420px){.login{margin:4vh auto;padding:1.2rem 1rem}}

@@ -1,5 +1,11 @@
 # Semil Talent Discovery (backend foundation)
 
+> **Current deployment:** Firebase Authentication + Cloud Firestore, served by the Express
+> API in `api/index.js` on Vercel. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for the
+> Firebase Console, Vercel environment variable, security-rule and data-migration steps.
+> The PostgreSQL/Docker material below is the original backend reference and is not used
+> by the Firebase deployment.
+
 Recruitment, assessment and onboarding platform for Semil Retail Industries.
 This is the first backend slice: database, authentication, role permissions, candidates,
 private resume storage, vacancies, evaluations and the weighted scoring engine.

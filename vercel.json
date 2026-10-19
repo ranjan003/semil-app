@@ -1,5 +1,15 @@
 {
   "version": 2,
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 60,
+      "memory": 512,
+      "includeFiles": [
+        "semil-app/public/**",
+        "semil-app/src/qb/**"
+      ]
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -11,6 +21,10 @@
     },
     {
       "source": "/healthz",
+      "destination": "/api/index.js"
+    },
+    {
+      "source": "/config.js",
       "destination": "/api/index.js"
     },
     {

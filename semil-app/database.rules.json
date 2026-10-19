@@ -1,0 +1,30 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "users": {
+      "$uid": {
+        ".read": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'super_admin' || root.child('users').child(auth.uid).child('role').val() == 'hr_admin')",
+        ".write": "auth != null && (auth.uid == $uid || root.child('users').child(auth.uid).child('role').val() == 'super_admin')"
+      }
+    },
+
+    "counters": { ".read": "auth != null", ".write": "auth != null" },
+    "candidates": { ".read": "auth != null", ".write": "auth != null" },
+    "vacancies": { ".read": "auth != null", ".write": "auth != null" },
+    "assessments": { ".read": "auth != null", ".write": "auth != null" },
+    "questionBank": { ".read": "auth != null", ".write": "auth != null" },
+    "roundSettings": { ".read": "auth != null", ".write": "auth != null" },
+    "assignments": { ".read": "auth != null", ".write": "auth != null" },
+    "attempts": { ".read": "auth != null", ".write": "auth != null" },
+    "importBatches": { ".read": "auth != null", ".write": "auth != null" },
+    "auditLogs": { ".read": "auth != null", ".write": "auth != null" },
+    "scoringConfig": { ".read": "auth != null", ".write": "auth != null" },
+    "interviews": { ".read": "auth != null", ".write": "auth != null" },
+    "offers": { ".read": "auth != null", ".write": "auth != null" },
+    "campaigns": { ".read": "auth != null", ".write": "auth != null" },
+    "colleges": { ".read": "auth != null", ".write": "auth != null" },
+    "notifications": { ".read": "auth != null", ".write": "auth != null" }
+  }
+}

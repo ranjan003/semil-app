@@ -2,7 +2,7 @@
 // Shared helpers: DOM builder, API client, toasts, modal. Everything that comes from the server is inserted with
 // textContent (never innerHTML), so question text or names cannot inject markup.
 (function () {
-  const NT = (window.NT = {});
+  const NT = (window.NT = window.NT || {});
 
   NT.h = function h(tag, attrs, ...kids) {
     const el = document.createElement(tag);
@@ -38,7 +38,8 @@
       } catch (e) { /* ignore */ }
     }
     if (body !== undefined) {
-      if (body instanceof Blob) init.body = body;
+      if (typeof FormData !== 'undefined' && body instanceof FormData) init.body = body;
+      else if (body instanceof Blob) init.body = body;
       else { init.headers['Content-Type'] = 'application/json'; init.body = JSON.stringify(body); }
     }
     let res;
@@ -50,7 +51,12 @@
     return data;
   }
   NT.api = { get: u => call('GET', u), post: (u, b) => call('POST', u, b === undefined ? {} : b), put: (u, b) => call('PUT', u, b === undefined ? {} : b),
-    upload: (u, file) => call('POST', u, file, { 'Content-Type': file.type || 'application/octet-stream' }) };
+    upload: (u, file) => {
+      if (typeof FormData !== 'undefined' && file instanceof FormData) return call('POST', u, file);
+      const fd = new FormData();
+      fd.append('file', file, (file && file.name) || 'upload');
+      return call('POST', u, fd);
+    } };
 
   NT.toast = function (msg, kind) {
     const t = h('div', { class: 'toast ' + (kind || ''), role: 'status', text: msg });

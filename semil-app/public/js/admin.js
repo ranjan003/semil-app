@@ -5,9 +5,21 @@
   const ROUNDS = [1, 2, 3, 4, 5];
   const LET = ['A', 'B', 'C', 'D'];
   let META = null, ROUND_NAMES = {};
+  const emptyMeta = () => ({ topics: [], roles: [], rounds: ROUNDS.map(n => ({ round: n, name: 'Round ' + n })), types: [], difficulties: [] });
   const roundLabel = n => `Round ${n}${ROUND_NAMES[n] ? ' · ' + ROUND_NAMES[n] : ''}`;
-  const loadMeta = async () => { META = await api.get('/api/qb/meta'); ROUND_NAMES = Object.fromEntries(META.rounds.map(r => [r.round, r.name])); return META; };
-  const topicsFor = round => [...new Set(META.topics.filter(t => !round || t.round === Number(round)).map(t => t.topic))].sort();
+  const loadMeta = async () => {
+    try {
+      META = await api.get('/api/qb/meta');
+    } catch (e) {
+      META = emptyMeta();
+      throw e;
+    }
+    if (!Array.isArray(META.topics)) META.topics = [];
+    if (!Array.isArray(META.rounds)) META.rounds = emptyMeta().rounds;
+    ROUND_NAMES = Object.fromEntries(META.rounds.map(r => [r.round, r.name]));
+    return META;
+  };
+  const topicsFor = round => [...new Set((META && Array.isArray(META.topics) ? META.topics : []).filter(t => !round || t.round === Number(round)).map(t => t.topic))].sort();
   const fieldErrors = e => { const m = {}; (e.fields || []).forEach(f => { m[f.path] = (m[f.path] ? m[f.path] + ' ' : '') + f.message; }); return m; };
 
   // ======================================================================= Question bank
@@ -20,23 +32,24 @@
     async function load() {
       let data;
       try { data = await api.get('/api/qb/questions' + qs({ ...f, per: 25 })); } catch (e) { return NT.err(e); }
-      const rows = data.items.map(q => h('tr', {},
-        h('td', { 'data-label': 'ID', class: 'mono small', text: q.question_code }),
-        h('td', { 'data-label': 'Question', class: 'q' }, h('div', { text: q.question_text.length > 140 ? q.question_text.slice(0, 140) + '…' : q.question_text }), h('div', { class: 'muted small', text: q.topic })),
-        h('td', { 'data-label': 'Type', text: q.type.replace('_', ' ') }),
-        h('td', { 'data-label': 'Round', text: 'R' + q.round }),
-        h('td', { 'data-label': 'Level' }, chip(q.difficulty)),
+      const items = Array.isArray(data && data.items) ? data.items : [];
+      const rows = items.map(q => h('tr', {},
+        h('td', { 'data-label': 'ID', class: 'mono small', text: q.question_code || '' }),
+        h('td', { 'data-label': 'Question', class: 'q' }, h('div', { text: String(q.question_text || '').length > 140 ? String(q.question_text).slice(0, 140) + '…' : (q.question_text || '') }), h('div', { class: 'muted small', text: q.topic || 'General' })),
+        h('td', { 'data-label': 'Type', text: String(q.type || 'mcq').replace('_', ' ') }),
+        h('td', { 'data-label': 'Round', text: 'R' + (q.round || 1) }),
+        h('td', { 'data-label': 'Level' }, chip(q.difficulty || 'medium')),
         h('td', { 'data-label': 'Role', text: q.role_code || 'All' }),
-        h('td', { 'data-label': 'Marks', text: `${q.marks}${q.negative_marks ? ' / −' + q.negative_marks : ''}` }),
-        h('td', { 'data-label': 'Status' }, statusChip(q.status)),
+        h('td', { 'data-label': 'Marks', text: `${q.marks ?? 1}${q.negative_marks ? ' / −' + q.negative_marks : ''}` }),
+        h('td', { 'data-label': 'Status' }, statusChip(q.status || 'active')),
         h('td', { 'data-label': '' }, canWrite ? h('div', { class: 'row' },
           h('button', { class: 'btn small', onclick: () => openEditor(q.id), text: 'Edit' }),
           q.status === 'archived'
             ? h('button', { class: 'btn small', onclick: () => setStatus(q, 'active'), text: 'Restore' })
             : [h('button', { class: 'btn small', onclick: () => setStatus(q, q.status === 'active' ? 'inactive' : 'active'), text: q.status === 'active' ? 'Deactivate' : 'Activate' }),
                h('button', { class: 'btn small danger', onclick: () => setStatus(q, 'archived'), text: 'Archive' })]) : null)));
-      NT.mount(body, data.items.length ? h('table', { class: 'cards' }, h('thead', {}, h('tr', {}, ['ID', 'Question', 'Type', 'Round', 'Level', 'Role', 'Marks', 'Status', ''].map(t => h('th', { text: t })))), h('tbody', {}, rows))
-        : h('p', { class: 'muted', text: 'No questions match. Import a file or add one with "New question".' }), pager(data.page, data.per, data.total, p => { f.page = p; load(); }));
+      NT.mount(body, items.length ? h('table', { class: 'cards' }, h('thead', {}, h('tr', {}, ['ID', 'Question', 'Type', 'Round', 'Level', 'Role', 'Marks', 'Status', ''].map(t => h('th', { text: t })))), h('tbody', {}, rows))
+        : h('p', { class: 'muted', text: 'No questions match. Import a file or add one with "New question".' }), pager(data.page || 1, data.per || 25, data.total || 0, p => { f.page = p; load(); }));
     }
     async function setStatus(q, status) {
       if (status === 'archived' && !(await NT.confirm('Archive question', `Archive ${q.question_code}? It stops being used in new tests. Papers already issued keep their copy.`, 'Archive', 'danger'))) return;
@@ -45,8 +58,9 @@
     async function openEditor(id) {
       let q = null;
       if (id) { try { q = await api.get('/api/qb/questions/' + id); } catch (e) { return NT.err(e); } }
-      const flat = q ? q.flat : { question_text: '', question_type: 'mcq', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: '', explanation: '', difficulty: 'medium', job_role: '', round: f.round || 1, topic: '', marks: 1, negative_marks: 0, status: 'active' };
-      const v = { ...flat };
+      const defaults = { question_text: '', question_type: 'mcq', option_a: '', option_b: '', option_c: '', option_d: '', correct_answer: '', explanation: '', difficulty: 'medium', job_role: '', round: f.round || 1, topic: '', marks: 1, negative_marks: 0, status: 'active' };
+      const flat = q ? (q.flat || defaults) : defaults;
+      const v = { ...defaults, ...flat };
       const area = h('div');
       let errs = {};
       const set = k => ev => { v[k] = ev.target.value; };
@@ -174,14 +188,16 @@
     const isSA = user.role === 'super_admin';
     async function load() {
       let d; try { d = await api.get('/api/qb/rounds'); } catch (e) { return NT.err(e); }
+      const items = Array.isArray(d && d.items) ? d.items : [];
       NT.mount(root, h('h2', { text: 'Rounds' }), isSA ? null : h('p', { class: 'muted', text: 'Only the Super Admin can change round settings.' }),
         h('p', { class: 'muted small', text: 'A round must be published before candidates can open its tests. Candidates are never moved between rounds automatically: use the pipeline stage as before.' }),
-        d.items.map(r => card(r)));
+        items.map(r => card(r)));
     }
     function card(r) {
-      const v = { name: r.name, description: r.description || '', enabled: r.enabled, published: r.published, duration_minutes: r.duration_minutes, pass_threshold_pct: r.pass_threshold_pct, require_stage: r.eligibility.require_stage, min_previous_pct: r.eligibility.min_previous_pct === null ? '' : r.eligibility.min_previous_pct };
+      const eligibility = r.eligibility || {};
+      const v = { name: r.name || `Round ${r.round}`, description: r.description || '', enabled: r.enabled !== false, published: r.published !== false, duration_minutes: r.duration_minutes || 45, pass_threshold_pct: r.pass_threshold_pct ?? 50, require_stage: !!eligibility.require_stage, min_previous_pct: eligibility.min_previous_pct === null || eligibility.min_previous_pct === undefined ? '' : eligibility.min_previous_pct };
       const dis = !isSA;
-      return h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', { text: `Round ${r.round}` }), r.published ? chip('published', 'ok') : chip('not published', 'warn'), !r.enabled ? chip('disabled', 'bad') : null, h('span', { class: 'sp' }), h('span', { class: 'muted small', text: `${r.active_questions} active questions · ${r.live_assessments} live test(s)` })),
+      return h('div', { class: 'card' }, h('div', { class: 'row' }, h('h3', { text: `Round ${r.round}` }), r.published ? chip('published', 'ok') : chip('not published', 'warn'), !r.enabled ? chip('disabled', 'bad') : null, h('span', { class: 'sp' }), h('span', { class: 'muted small', text: `${r.active_questions || 0} active questions · ${r.live_assessments || 0} live test(s)` })),
         h('div', { class: 'grid' },
           field('Name', h('input', { type: 'text', value: v.name, disabled: dis, oninput: e => { v.name = e.target.value; } })),
           field('Duration (minutes)', h('input', { type: 'number', min: 1, max: 480, value: v.duration_minutes, disabled: dis, oninput: e => { v.duration_minutes = Number(e.target.value); } })),
@@ -204,15 +220,18 @@
     const canPublish = user.role === 'super_admin' || user.role === 'hr_admin';
     async function list() {
       let d; try { d = await api.get('/api/qb/assessments'); } catch (e) { return NT.err(e); }
+      const items = Array.isArray(d && d.items) ? d.items : [];
+      const ruleCount = a => Array.isArray(a.rules) ? a.rules.reduce((s, r) => s + (Number(r.count) || 0), 0) : 0;
       NT.mount(root, h('div', { class: 'row' }, h('h2', { text: 'Tests' }), h('span', { class: 'sp' }), h('button', { class: 'btn primary', onclick: () => editor(null), text: '+ New test' })),
-        h('div', { class: 'card' }, d.items.length ? h('table', { class: 'cards' }, h('thead', {}, h('tr', {}, ['Test', 'Round', 'Questions', 'Status', 'Assigned', 'Submitted', ''].map(t => h('th', { text: t })))),
-          h('tbody', {}, d.items.map(a => h('tr', {}, h('td', { 'data-label': 'Test', text: a.title }), h('td', { 'data-label': 'Round', text: 'R' + a.round }), h('td', { 'data-label': 'Questions', text: String(a.rules.reduce((s, r) => s + r.count, 0)) }), h('td', { 'data-label': 'Status' }, statusChip(a.status === 'active' ? 'published' : a.status)), h('td', { 'data-label': 'Assigned', text: String(a.assigned) }), h('td', { 'data-label': 'Submitted', text: String(a.submitted) }), h('td', {}, h('button', { class: 'btn small', onclick: () => detail(a.id), text: 'Open' })))))) : h('p', { class: 'muted', text: 'No tests yet. Create one from the question bank.' })));
+        h('div', { class: 'card' }, items.length ? h('table', { class: 'cards' }, h('thead', {}, h('tr', {}, ['Test', 'Round', 'Questions', 'Status', 'Assigned', 'Submitted', ''].map(t => h('th', { text: t })))),
+          h('tbody', {}, items.map(a => h('tr', {}, h('td', { 'data-label': 'Test', text: a.title || 'Untitled test' }), h('td', { 'data-label': 'Round', text: 'R' + (a.round || 1) }), h('td', { 'data-label': 'Questions', text: String(ruleCount(a)) }), h('td', { 'data-label': 'Status' }, statusChip(a.status === 'active' ? 'published' : a.status)), h('td', { 'data-label': 'Assigned', text: String(a.assigned || 0) }), h('td', { 'data-label': 'Submitted', text: String(a.submitted || 0) }), h('td', {}, h('button', { class: 'btn small', onclick: () => detail(a.id), text: 'Open' })))))) : h('p', { class: 'muted', text: 'No tests yet. Create one from the question bank.' })));
     }
     async function editor(a) {
-      const v = a ? { title: a.title, round: a.round, roles: a.roles.join(', '), instructions: a.instructions || '', time_limit_minutes: a.time_limit_minutes, pass_mark_pct: a.pass_mark_pct, lock_mode: a.lock_mode, monitor_mode: a.monitor_mode, shuffle_questions: a.shuffle_questions, shuffle_options: a.shuffle_options, results_policy: a.results_policy, opens_at: a.opens_at ? a.opens_at.slice(0, 16) : '', closes_at: a.closes_at ? a.closes_at.slice(0, 16) : '', rules: a.rules.map(r => ({ ...r })) }
+      const v = a ? { title: a.title, round: a.round, roles: Array.isArray(a.roles) ? a.roles.join(', ') : (a.roles || ''), instructions: a.instructions || '', time_limit_minutes: a.time_limit_minutes, pass_mark_pct: a.pass_mark_pct, lock_mode: a.lock_mode, monitor_mode: a.monitor_mode, shuffle_questions: a.shuffle_questions, shuffle_options: a.shuffle_options, results_policy: a.results_policy, opens_at: a.opens_at ? String(a.opens_at).slice(0, 16) : '', closes_at: a.closes_at ? String(a.closes_at).slice(0, 16) : '', rules: Array.isArray(a.rules) && a.rules.length ? a.rules.map(r => ({ ...r })) : [{ topic: '', difficulty: 'any', count: 1 }] }
         : { title: '', round: 1, roles: '', instructions: '', time_limit_minutes: null, pass_mark_pct: null, lock_mode: 'strict', monitor_mode: 'off', shuffle_questions: true, shuffle_options: true, results_policy: 'hidden', opens_at: '', closes_at: '', rules: [{ topic: '', difficulty: 'any', count: 1 }] };
       let pool = [], errs = '';
-      const rounds = (await api.get('/api/qb/rounds')).items;
+      let rounds = [];
+      try { rounds = (await api.get('/api/qb/rounds')).items || []; } catch (e) { return NT.err(e); }
       const area = h('div');
       const loadPool = async () => { try { pool = (await api.get('/api/qb/pool' + qs({ round: v.round, role: v.roles.split(',')[0].trim().toUpperCase() }))).cells; } catch { pool = []; } };
       const avail = r => pool.filter(c => c.topic.toLowerCase() === String(r.topic).trim().toLowerCase() && (r.difficulty === 'any' || c.difficulty === r.difficulty)).reduce((s, c) => s + c.n, 0);
@@ -257,14 +276,17 @@
       let a; try { a = await api.get('/api/qb/assessments/' + id); } catch (e) { return NT.err(e); }
       const live = a.status === 'active';
       const av = a.availability;
+      const rules = Array.isArray(a.rules) ? a.rules : [];
+      const roles = Array.isArray(a.roles) ? a.roles : [];
+      const policy = a.results_policy || 'hidden';
       NT.mount(root, h('p', {}, h('button', { class: 'btn small', onclick: list, text: '← All tests' })),
-        h('div', { class: 'card' }, h('div', { class: 'row' }, h('h2', { text: a.title }), statusChip(live ? 'published' : a.status), h('span', { class: 'chip', text: `version ${a.current_version}` }), h('span', { class: 'sp' }),
+        h('div', { class: 'card' }, h('div', { class: 'row' }, h('h2', { text: a.title || 'Test' }), statusChip(live ? 'published' : a.status), h('span', { class: 'chip', text: `version ${a.current_version || 1}` }), h('span', { class: 'sp' }),
           a.status !== 'archived' ? h('button', { class: 'btn', onclick: () => editor(a), text: 'Edit' }) : null,
           h('button', { class: 'btn', onclick: () => preview(a.id), text: 'Preview a paper' }),
           canPublish && a.status !== 'archived' ? h('button', { class: 'btn ' + (live ? '' : 'primary'), id: 'btn-publish', onclick: async () => { try { await api.post(`/api/qb/assessments/${a.id}/publish`, { action: live ? 'unpublish' : 'publish' }); toast(live ? 'Unpublished' : 'Published', 'ok'); detail(a.id); } catch (e) { NT.err(e); } }, text: live ? 'Unpublish' : 'Publish' }) : null),
-          h('p', { class: 'muted', text: `Round ${a.round} · ${a.time_limit_minutes} min · pass ${a.pass_mark_pct}% · lock: ${a.lock_mode} · camera: ${a.monitor_mode === 'required' ? 'required' : 'off'} · roles: ${a.roles.length ? a.roles.join(', ') : 'all'} · results: ${a.results_policy.replace(/_/g, ' ')}${a.results_published_at ? ' (published)' : ''}` }),
+          h('p', { class: 'muted', text: `Round ${a.round || 1} · ${a.time_limit_minutes || 45} min · pass ${a.pass_mark_pct ?? 50}% · lock: ${a.lock_mode || 'strict'} · camera: ${a.monitor_mode === 'required' ? 'required' : 'off'} · roles: ${roles.length ? roles.join(', ') : 'all'} · results: ${String(policy).replace(/_/g, ' ')}${a.results_published_at ? ' (published)' : ''}` }),
           av && !av.ok ? h('div', { class: 'banner warn', text: 'The bank does not currently have enough active questions for every rule.' }) : null,
-          h('table', {}, h('thead', {}, h('tr', {}, ['Topic', 'Difficulty', 'Per candidate', 'In bank'].map(t => h('th', { text: t })))), h('tbody', {}, a.rules.map((r, i) => { const x = av ? av.byRole[0].rules[i] : null; return h('tr', {}, h('td', { text: r.topic }), h('td', { text: r.difficulty }), h('td', { text: String(r.count) }), h('td', {}, x ? chip(String(x.available), x.ok ? 'ok' : 'bad') : '')); }))),
+          h('table', {}, h('thead', {}, h('tr', {}, ['Topic', 'Difficulty', 'Per candidate', 'In bank'].map(t => h('th', { text: t })))), h('tbody', {}, rules.map((r, i) => { const x = av && av.byRole && av.byRole[0] ? av.byRole[0].rules[i] : null; return h('tr', {}, h('td', { text: r.topic }), h('td', { text: r.difficulty }), h('td', { text: String(r.count) }), h('td', {}, x ? chip(String(x.available), x.ok ? 'ok' : 'bad') : '')); }))),
           av ? h('p', { class: 'muted small', text: `About ${av.estimatedMarks} marks in total.` }) : null),
         live ? assignCard(a) : h('div', { class: 'banner info', text: 'Publish the test to assign candidates. The round must also be published in Rounds.' }),
         canPublish ? resultsCard(a) : null,
@@ -379,7 +401,12 @@
     function select(key, arg) {
       const t = tabs.find(x => x[0] === key);
       [...bar.children].forEach(b => b.setAttribute('aria-selected', String(b.dataset.key === key)));
-      NT.mount(view, t[2](arg));
+      try {
+        NT.mount(view, t[2](arg));
+      } catch (e) {
+        console.error('Tab failed to render:', e);
+        NT.mount(view, h('div', { class: 'card' }, h('h2', { text: 'This page could not load' }), h('p', { class: 'muted', text: e && e.message ? e.message : 'Unexpected error.' }), h('button', { class: 'btn primary', onclick: () => select(key, arg), text: 'Try again' })));
+      }
       NT.safeStore.set('nt_tab', key);
     }
     tabs.forEach(([k, label]) => bar.append(h('button', { role: 'tab', 'data-key': k, 'aria-selected': 'false', onclick: () => select(k), text: label })));

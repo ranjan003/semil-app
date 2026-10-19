@@ -1,20 +1,28 @@
 # Semil Talent Discovery (backend foundation)
 
+> **Current deployment:** Firebase Authentication + Cloud Firestore, served by the Express
+> API in `api/index.js` on Vercel. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for the
+> Firebase Console, Vercel environment variable, security-rule and data-migration steps.
+> The PostgreSQL/Docker material below is the original backend reference and is not used
+> by the Firebase deployment.
+
 Recruitment, assessment and onboarding platform for Semil Retail Industries.
 This is the first backend slice: database, authentication, role permissions, candidates,
 private resume storage, vacancies, evaluations and the weighted scoring engine.
 `prototype.html` is the clickable UI prototype; the React app will be built on this API.
 
-## Quick Start (Development)
+## Quick Start (Firebase / Vercel)
 ```bash
-cp .env.example .env          # set DATABASE_URL and a 32+ character STORAGE_SIGNING_SECRET
 npm install
-npm run migrate               # creates all tables
-ADMIN_EMAIL=you@company.com ADMIN_PASSWORD='a-long-passphrase-1' npm run seed
-npm start                     # API on :3000, health check at /healthz
-npm test                      # unit tests (no database needed)
-PGHOST=localhost PGUSER=postgres bash scripts/test-db.sh   # schema constraint tests
+cp .env.example .env          # web config + FIREBASE_SERVICE_ACCOUNT for Firestore
+npm start                     # API + web app on :3000, health check at /healthz
+npm test                      # unit tests (database-backed tests skip without PostgreSQL)
 ```
+Set `ADMIN_EMAILS` to your Firebase account e-mail so your first sign-in gets the
+Super Admin role. See [FIREBASE_SETUP.md](FIREBASE_SETUP.md) for the full checklist.
+
+### Legacy PostgreSQL backend (reference only)
+The original backend still lives in `semil-app/src/` for reference and Docker deployments.
 
 ## Docker Deployment (Production)
 ```bash

@@ -7,7 +7,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "start": "node src/server.js",
+    "start": "node functions/src/dev-server.js",
+    "start:legacy": "node src/server.js",
     "migrate": "node src/migrate.js",
     "seed": "node scripts/seed.js",
     "test": "node --test test/*.test.js",
