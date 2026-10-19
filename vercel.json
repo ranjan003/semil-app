@@ -4,10 +4,7 @@
     "api/index.js": {
       "maxDuration": 60,
       "memory": 512,
-      "includeFiles": [
-        "semil-app/public/**",
-        "semil-app/src/qb/**"
-      ]
+      "includeFiles": "semil-app/public/**"
     }
   },
   "rewrites": [
